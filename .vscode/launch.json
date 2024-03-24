@@ -2,10 +2,10 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "MAIN",
+      "name": "Train",
       "type": "debugpy",
       "request": "launch",
-      "program": "${workspaceFolder}/main.py",
+      "program": "${workspaceFolder}/train.py",
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}"
     }

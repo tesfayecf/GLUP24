@@ -24,7 +24,7 @@ def build_model(input_shape, hidden_units, embedding_size, output_shape):
     lstm_output = tf.keras.layers.Dropout(0.3)(lstm_output)
 
     # Dense layers
-    dense_output = tf.keras.layers.Dense(embedding_size, activation='linear')(lstm_output)
+    dense_output = tf.keras.layers.Dense(embedding_size, activation='relu')(lstm_output)
     output = tf.keras.layers.Dense(output_shape, activation='linear')(dense_output)
 
     model = tf.keras.models.Model(inputs=input_features, outputs=output)

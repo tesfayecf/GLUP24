@@ -17,7 +17,7 @@ DATASET_NUMBER = 559
 PREDICTION = 30
 
 # MlFlow
-port = 8080
+port = 5000
 
 model_dir = "./Models"
 # model_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Models'
@@ -64,7 +64,7 @@ hidden_units = 32
 embedding_size = 32
 ################ DATASET ################
 number = DATASET_NUMBER
-sequence_size = 10
+sequence_size = 12
 prediction_time = int(PREDICTION / 5)
 impute_strategy = False
 scale_data = False
@@ -74,21 +74,25 @@ batch_size = 32
 validation_split = 0.2
 ############### TRAINING ################
 learning_rate = 0.001
-epochs = 5
+epochs = 25
 optimizer = 'Adam'
 loss = 'mse'
 ##########################################
 
 # Get current timestamp
 timestamp = datetime.now().strftime("%H_%M_%S_%d_%m_%Y")
-filename = f"{model_name}_{DATASET_NUMBER}-{PREDICTION}_{timestamp}"
+filename = f"{model_name}-{DATASET_NUMBER}-{PREDICTION}_{timestamp}"
 filepath = f"{model_dir}/{filename}"
 
 def main():
     # Start tracking server
     mlflow.set_tracking_uri(f"http://localhost:{port}")
     mlflow.set_experiment(f"GLUP24-{DATASET_NUMBER}-{PREDICTION}")
+    
+    print(f"Experiment: {mlflow.get_experiment_by_name(f'GLUP24-{DATASET_NUMBER}-{PREDICTION}')}")
+    print(f"Model: {filename}")
 
+    print("Reading datasets")
     # Get training data
     train_val_data = pd.read_csv(f'{dataset_dir}/{number}/{number}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
     train_val_data = process_data(train_val_data, True, impute_strategy, scale_data, encode_categorical, select_features)
@@ -97,6 +101,7 @@ def main():
     test_data = pd.read_csv(f'{dataset_dir}/{number}/{number}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
     test_data = process_data(test_data, False, impute_strategy, scale_data, encode_categorical, select_features)
 
+    print("Creating datasets")
     # Create sequences and targets for training
     X, Y = to_sequences_multi(train_val_data,  sequence_size, prediction_time, feature_columns, target_columns)
     
@@ -134,6 +139,7 @@ def main():
     # Get input shape from training data
     input_shape = x_train.shape[1:]
     # Create the model
+    print("Building the model")
     model = build_model(input_shape, hidden_units, embedding_size, 1)
     # Get optimizer
     optimizer_ = get_optimizer(optimizer, learning_rate)
@@ -149,6 +155,7 @@ def main():
         ]
     )
     # Show model summary
+    print("Model summary:")
     model.summary()
     
     with mlflow.start_run(run_name=filename) as run:
@@ -161,10 +168,13 @@ def main():
         ]
         
         # Train the model
+        print("Training the model")
         model.fit(train_dataset, validation_data=validation_dataset, epochs=epochs, callbacks=callbacks)
-    
+        print("Model training completed.")
+        
         # Save the model after training (assuming training completes all epochs)
-        model.save(f"{filepath}")
+        model.save(f"{filepath}.keras")
+        print("Trained model saved successfully.")
         
         # Crete summary json file
         create_summary_json(
@@ -181,9 +191,11 @@ def main():
         )       
     
         # Run test inference
+        print("Running test inference")
         y_pred = model.predict(test_dataset)
         
         # Calculate error metrics
+        print("Calculating error metrics")
         metrics = {
             "mae": mean_absolute_error(Y_test, y_pred), 
             "mse": mean_squared_error(Y_test, y_pred), 
@@ -208,12 +220,15 @@ def main():
         }
     
         # Log the parameters used for the model fit
+        print("Logging parameters of the model")
         mlflow.log_params(params)
 
         # Log the error metrics that were calculated during validation
+        print("Logging error metrics")
         mlflow.log_metrics(metrics)
 
         # Log an instance of the trained model for later use
+        print("Logging the trained model")
         mlflow.tensorflow.log_model(model, artifact_path="model")
 
 if __name__ == '__main__':

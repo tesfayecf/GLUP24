@@ -5,7 +5,7 @@
       "label": "MLFlow",
       "type": "shell",
       "command": "mlflow",
-      "args": ["server", "--host", "127.0.0.1", "--port", "8080"],
+      "args": ["server", "--host", "127.0.0.1", "--port", "5000"],
       "presentation": {
         "echo": true,
         "reveal": "always",
