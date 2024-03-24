@@ -3,9 +3,13 @@ import numpy as np
 import pandas as pd
 from typing import List
 import tensorflow as tf
+import scipy.stats as stats
+import matplotlib.pyplot as plt
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import SelectKBest, f_regression
+
+################ DATASET ################
 
 def create_time_index(dataset, time_index):
     """
@@ -198,6 +202,8 @@ def to_sequences_multi(obs, seq_size, prediction_time, sequence_columns, target_
 
     return np.array(x), np.array(y)
 
+################# MODEL #################
+
 def get_optimizer(optimizer, learning_rate):
     if optimizer == 'Adam':
         return tf.keras.optimizers.Adam(learning_rate=learning_rate)
@@ -225,6 +231,9 @@ def get_loss(loss):
         return tf.keras.losses.Hinge()
     else:
         raise ValueError(f"Invalid loss function: {loss}")
+
+################# LOGGING #################
+
 def create_summary_json(
     filepath: str,  # Use type hints for clarity
     model_name: str,  # Use type hints for clarity
@@ -305,7 +314,6 @@ def create_summary_json(
     with open(f"{filepath}.json", 'w') as f:
         json.dump(summary, f, indent=4)
 
-
 def load_and_train_model(summary_file, train_dataset, validation_dataset=None, epochs=1, steps_per_epoch=1, callbacks=None):
     """
     Loads training parameters from a JSON file and trains a new model.
@@ -351,3 +359,59 @@ def load_and_train_model(summary_file, train_dataset, validation_dataset=None, e
 #         print(f"Error reading summary file: {summary_file}")
 #         return None
     pass
+
+################# PLOTS #################
+
+def generate_line_plot(y_true, y_pred):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.plot(y_true, label='True values')
+    ax.plot(y_pred, label='Predictions')
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Glucose Level')
+    ax.set_title('Real values vs Predictions')
+    ax.legend()
+    return fig
+
+
+def generate_scatter_plot(y_true, y_pred):
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(y_true, y_pred, alpha=0.5)
+    ax.set_xlabel('True Values')
+    ax.set_ylabel('Predictions')
+    ax.set_title('Scatter Plot of True Values vs Predictions')
+    ax.legend()
+    return fig
+
+def generate_histogram_residuals(y_true, y_pred):
+    residuals = y_true - y_pred
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.hist(residuals, bins=20, edgecolor='black')
+    ax.set_xlabel('Residuals')
+    ax.set_ylabel('Frequency')
+    ax.set_title('Histogram of Residuals')
+    ax.legend()
+    return fig
+
+def generate_density_residuals(y_true, y_pred):
+    residuals = y_true - y_pred
+    fig, ax = plt.subplots(figsize=(8, 6))
+    density, bins, _ = ax.hist(residuals, bins=20, density=True, alpha=0)
+    kernel = stats.gaussian_kde(residuals)
+    x_vals = np.linspace(bins.min(), bins.max(), 1000)
+    ax.plot(x_vals, kernel(x_vals), color='blue', alpha=0.7)
+    ax.fill_between(x_vals, kernel(x_vals), alpha=0.5, color='blue')
+    ax.set_xlabel('Residuals')
+    ax.set_ylabel('Density')
+    ax.set_title('Density Plot of Residuals')
+    ax.legend()
+    return fig
+
+def generate_qq_plot(y_true, y_pred):
+    residuals = y_true - y_pred
+    fig, ax = plt.subplots(figsize=(8, 6))
+    stats.probplot(residuals, dist="norm", plot=ax)
+    ax.set_title('QQ Plot of Residuals')
+    ax.set_xlabel('Theoretical Quantiles')
+    ax.set_ylabel('Ordered Values')
+    ax.legend()
+    return fig
