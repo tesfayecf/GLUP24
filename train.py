@@ -8,6 +8,7 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from utils import *
 from model import build_model
+import os
 
 DATASET_NUMBER = 559
 PREDICTION = 30
@@ -55,7 +56,7 @@ target_columns = [
 ]
 
 ################# MODEL #################
-model_name = 'LSTM'
+model_version = 'LSTM'
 hidden_units = 32
 embedding_size = 32
 ################ DATASET ################
@@ -79,8 +80,13 @@ loss = 'mse'
 def main():
     # Generate model name based on parameters and timestamp
     timestamp = int(time.time())
-    filename = f"{model_name}-{DATASET_NUMBER}-{PREDICTION}-[{timestamp}]"
-    model_path = f"{models_dir}/{filename}"
+    model_name = f"{model_version}-{DATASET_NUMBER}-{PREDICTION}-[{timestamp}]"
+    model_dir = f"{models_dir}/{model_name}"
+    model_path = f"{model_dir}/{model_name}"
+    
+    # Check if model folder exists, if not, create it
+    if not os.path.exists(model_dir):
+        os.makedirs(model_dir)
 
     # Connect to tracking server
     print("Connecting to tracking server")
@@ -154,12 +160,12 @@ def main():
     model.summary()
     
     ################# TRAIN #################
-    with mlflow.start_run(run_name=filename) as run:
+    with mlflow.start_run(run_name=model_name) as run:
         # Define callbacks
         callbacks = [
             tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True),
             tf.keras.callbacks.ReduceLROnPlateau(patience=5, factor=0.2,),
-            tf.keras.callbacks.TensorBoard(f"{logs_dir}/{filename}"),
+            tf.keras.callbacks.TensorBoard(f"{logs_dir}/{model_name}"),
             mlflow.keras.MLflowCallback(run)
         ]
         
@@ -174,7 +180,7 @@ def main():
         
         # Crete summary json file
         create_summary_json(
-            model_path, model_name, 
+            model_path, model_version, 
             # Dataset parameters
             number, feature_columns, target_columns, sequence_size, prediction_time, impute_strategy, scale_data, encode_categorical, select_features,
             # Trainin parameters
