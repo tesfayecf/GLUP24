@@ -1,5 +1,5 @@
 import tensorflow as tf
-from train import train_model
+from train_loop import train_loop
 
 def build_model(input_shape, hidden_units, embedding_size, output_shape):
     """
@@ -107,4 +107,4 @@ class CustomModel(tf.keras.Model):
             steps_per_epoch: Number of training steps per epoch (optional).
             callbacks: A list of Keras callbacks to use during training (optional).
         """
-        train_model(self, train_dataset, validation_dataset, test_dataset, epochs, steps_per_epoch)
+        train_loop(self, train_dataset, validation_dataset, test_dataset, epochs, steps_per_epoch)
