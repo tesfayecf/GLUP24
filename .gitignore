@@ -2,6 +2,7 @@ mlruns
 mlartifacts
 Models
 Logs
+MLFlow
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

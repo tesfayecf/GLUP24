@@ -2,10 +2,20 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "MLFlow",
+      "label": "MLflow",
       "type": "shell",
       "command": "mlflow",
-      "args": ["server", "--host", "127.0.0.1", "--port", "5000"],
+      "args": [
+        "server",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5000",
+        "--backend-store-uri",
+        "./MLflow/mlruns",
+        "--artifacts-destination",
+        "./MLflow/mlartifacts"
+      ],
       "presentation": {
         "echo": true,
         "reveal": "always",
