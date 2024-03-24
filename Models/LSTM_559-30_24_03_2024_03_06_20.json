@@ -1,0 +1,46 @@
+{
+    "model_name": "LSTM",
+    "dataset_parameters": {
+        "dataset_name": 559,
+        "features": [
+            "glucose_level",
+            "basis_heart_rate",
+            "basis_sleep",
+            "basis_step",
+            "basal",
+            "finger_stick",
+            "basis_skin_temperature",
+            "basis_air_temperature",
+            "work",
+            "exercise",
+            "bolus",
+            "meal",
+            "stressors",
+            "illness",
+            "type_of_meal",
+            "hypo_event",
+            "basis_gsr",
+            "sleep"
+        ],
+        "target": [
+            "glucose_level"
+        ],
+        "sequence_size": 10,
+        "prediction_time": 6,
+        "impute_strategy": false,
+        "scale_data": false,
+        "encode_categorical": false,
+        "select_features": false
+    },
+    "training_parameters": {
+        "optimizer": "Adam",
+        "learning_rate": 0.001,
+        "loss": "mse",
+        "epochs": 50,
+        "batch_size": 32
+    },
+    "model_parameters": {
+        "hidden_units": 32,
+        "embedding_size": 32
+    }
+}

@@ -1,0 +1,39 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "MLFlow",
+      "type": "shell",
+      "command": "mlflow",
+      "args": ["server", "--host", "127.0.0.1", "--port", "8080"],
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "TensorBoard",
+      "type": "shell",
+      "command": "tensorboard",
+      "args": [
+        "--logdir",
+        "${workspaceFolder}/logs" // Replace with your actual log directory
+      ],
+      "presentation": {
+        "reveal": "always" // Optional: Set the terminal to always reveal when the task runs
+      },
+      "problemMatcher": "$tsc" // Optional: Set a problem matcher for TensorBoard errors
+    },
+    {
+      "label": "All Tasks",
+      "dependsOn": ["MLFlow", "TensorBoard"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }
+  ]
+}

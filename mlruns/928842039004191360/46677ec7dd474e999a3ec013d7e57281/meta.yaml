@@ -1,0 +1,15 @@
+artifact_uri: mlflow-artifacts:/928842039004191360/46677ec7dd474e999a3ec013d7e57281/artifacts
+end_time: 1711246319749
+entry_point_name: ''
+experiment_id: '928842039004191360'
+lifecycle_stage: active
+run_id: 46677ec7dd474e999a3ec013d7e57281
+run_name: LSTM_559-30_24_03_2024_03_06_20
+run_uuid: 46677ec7dd474e999a3ec013d7e57281
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1711246026573
+status: 3
+tags: []
+user_id: tesfa
