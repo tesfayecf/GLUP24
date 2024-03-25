@@ -1,10 +1,6 @@
-import json
 import numpy as np
 import pandas as pd
-from typing import List
 import tensorflow as tf
-import scipy.stats as stats
-import matplotlib.pyplot as plt
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import SelectKBest, f_regression
@@ -223,6 +219,8 @@ def get_loss(loss):
         return tf.keras.losses.MeanSquaredError()
     elif loss == 'mae':
         return tf.keras.losses.MeanAbsoluteError()
+    elif loss == 'rmse':
+        return tf.keras.losses.RootMeanSquaredError()
     elif loss == 'mape':
         return tf.keras.losses.MeanAbsolutePercentageError()
     elif loss == 'msle':
@@ -231,131 +229,3 @@ def get_loss(loss):
         return tf.keras.losses.Hinge()
     else:
         raise ValueError(f"Invalid loss function: {loss}")
-
-################# LOGGING #################
-
-def create_summary_json(
-    filepath: str,  # Use type hints for clarity
-    model_name: str,  # Use type hints for clarity
-    
-    dataset_name: str,  # Allow optional dataset name
-    features: List[str],
-    target: List[str],
-    sequence_size: int,
-    prediction_time: int,
-    impute_strategy: str,
-    scale_data: bool,
-    encode_categorical: bool,
-    select_features: bool,
-    
-    optimizer: str,
-    learning_rate: float,
-    loss: str,
-    epochs: int,
-    batch_size: int,
-    
-    model_parameters: dict
-):
-    """
-    Creates a JSON file summarizing training and model information.
-
-    Args:
-        filepath (str): The name of the filepath.
-        model_name (str): The name of the model.
-        
-        # Dataset parameters
-        dataset_name (str): The name of the dataset.
-        features (List): Number of input features.
-        target (List): Number of output features.
-        sequence_size (int): The size of the sequence window.
-        prediction_time (int): The number of steps ahead to predict.
-        impute_strategy (str): Strategy to use for imputing missing values ('mean', 'median', 'most_frequent').
-        scale_data (bool): Whether to scale the data (default True).
-        encode_categorical (bool): Whether to encode categorical variables (default True).
-        select_features (bool): Whether to select the most relevant features (default True).
-                
-        # Training parameters
-        optimizer (tf.keras.optimizers.Optimizer): The optimizer used for training.
-        learning_rate (float): The learning rate used for training.
-        loss (tf.keras.losses.Loss): The loss function used for training.
-        epochs (int): Number of training epochs.
-        batch_size (int): Batch size used for training
-        
-        # Model parameters
-        model_parameters (Dict): Specific parameters of trained model
-    """
-    
-    # Create the summary dictionary
-    summary = {
-        "model_name": model_name,
-        "dataset_parameters": {
-            "dataset_name": dataset_name,
-            "features": features,
-            "target": target,
-            "sequence_size": sequence_size,
-            "prediction_time": prediction_time,
-            "impute_strategy": impute_strategy,
-            "scale_data": scale_data,
-            "encode_categorical": encode_categorical,
-            "select_features": select_features,
-        },
-        "training_parameters": {
-            "optimizer": optimizer,
-            "learning_rate": learning_rate,
-            "loss": loss,
-            "epochs": epochs,
-            "batch_size": batch_size,
-        },
-        "model_parameters": model_parameters
-        
-    }
-
-    # Write the summary dictionary to a JSON file
-    with open(f"{filepath}.json", 'w') as f:
-        json.dump(summary, f, indent=4)
-
-def load_and_train_model(summary_file, train_dataset, validation_dataset=None, epochs=1, steps_per_epoch=1, callbacks=None):
-    """
-    Loads training parameters from a JSON file and trains a new model.
-
-    Args:
-        summary_file (str): Path to the JSON file containing training summary.
-        train_dataset (tf.data.Dataset): The training dataset to use.
-        validation_dataset (tf.data.Dataset, optional): The validation dataset (optional).
-        epochs (int, optional): Number of training epochs (defaults to 1).
-        steps_per_epoch (int, optional): Number of training steps per epoch (optional).
-        callbacks (list, optional): A list of Keras callbacks to use during training (optional).
-
-    Returns:
-        Model: The trained model object.
-    """
-
-#     try:
-#         # Read the summary dictionary
-#         with open(summary_file, 'r') as f:
-#             summary = json.load(f)
-
-#         # Extract model and training parameters
-#         model_params = summary["model_parameters"]
-#         training_params = summary["training_parameters"]
-
-#         # Create a new model instance with loaded parameters
-#         model = Model(
-#             features=model_params["features"],
-#             hidden_units=model_params["hidden_units"],
-#             output_size=model_params["output_size"]
-#         )
-
-#         # Compile the model (consider using optimizer from loaded parameters)
-#         optimizer = getattr(tf.keras.optimizers, training_params["optimizer"])(learning_rate=training_params["learning_rate"])
-#         model.compile(optimizer=optimizer, loss=tf.keras.losses.MeanSquaredError(), metrics=['mae'])
-
-#         # Train the model
-#         model.train(train_dataset, validation_dataset, epochs, steps_per_epoch, callbacks)
-
-#         return model
-
-#     except (FileNotFoundError, json.JSONDecodeError):
-#         print(f"Error reading summary file: {summary_file}")
-#         return None
-    pass
