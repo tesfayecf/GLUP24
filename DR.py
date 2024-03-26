@@ -10,6 +10,8 @@ hidden_units: int = 300
 embedding_size: int = 32
 auxiliary_variables: int = 4
 
+# train_model(MODEL_NAME, MODEL_VERSION, num_blocks=num_blocks, hidden_units=hidden_units, embedding_size=embedding_size, auxiliary_variables=auxiliary_variables)
+
 def DR_1(input_shape: Tuple[int, ...], output_shape: int = 1, num_blocks: int = 7, hidden_units: int = 300, embedding_size: int = 32, auxiliary_variables: int = 4) -> tf.keras.Model:
     """
     Implements the deep residual time series forecasting model with RNN blocks, additional input variables, and auxiliary losses.

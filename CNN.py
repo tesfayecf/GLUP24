@@ -9,6 +9,8 @@ filters: list[int] = [32, 64, 128]
 kernel_size: int = 3
 hidden_units: int = 128
 
+# train_model(MODEL_NAME, MODEL_VERSION, filters=filters, kernel_size=kernel_size, hidden_units=hidden_units)
+
 def CNN_1(input_shape: Tuple[int, ...], output_shape: int = 1, filters: list[int] = [32, 64, 128], kernel_size: int = 3, hidden_units: int = 128) -> tf.keras.Model:
   """
   Constructs a 1D CNN model for time series forecasting.

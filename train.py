@@ -1,7 +1,7 @@
 import time
 import mlflow
 import logging
-import structlog
+# import structlog
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -17,6 +17,7 @@ PREDICTION = 30
 
 # MLFlow
 PORT = 5000
+LOG_LEVEL = logging.INFO
 
 models_dir = "./Models"
 # models_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Models'
@@ -57,7 +58,6 @@ target_columns = [
     'glucose_level'
 ]
 
-################# MODEL #################
 ################ DATASET ################
 number = DATASET_NUMBER
 sequence_size = 12
@@ -69,23 +69,22 @@ select_features = False
 validation_split = 0.2
 ############### TRAINING ################
 learning_rate = 0.001
-epochs = 40
+epochs = 50
 optimizer = 'Adam'
-loss = 'rmse'
+loss = 'hinge'
 batch_size = 64
 ##########################################
 
-
-def train(model_name: str, model_version: int, log_level: int = logging.INFO, **model_parameters):
-    log = structlog.get_logger()
-    structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(log_level))
+def train_model(model_name: str, model_version: int, **model_parameters):
+    # log = structlog.get_logger()
+    # structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(LOG_LEVEL))
+    log = logging.getLogger(__name__)
+    logging.basicConfig(level=LOG_LEVEL)
     
     # Generate model name based on parameters and timestamp
     timestamp = int(time.time())
-    model_name = f"{model_name}_{model_version}-{DATASET_NUMBER}-{PREDICTION}-[{timestamp}]"
-    model_dir = f"{models_dir}/{model_name}"
-    model_path = f"{model_dir}/{model_name}"
-    log.info(f"Model name: {model_name}")
+    run_name = f"{model_name}_{model_version}-{DATASET_NUMBER}-{PREDICTION}-[{timestamp}]"
+    log.info(f"Model run name: {run_name}")
     
     ################# TRACKING #################
     try:
@@ -96,7 +95,8 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
         mlflow.set_experiment(f"GLUP24-{DATASET_NUMBER}-{PREDICTION}")
         log.debug(f"Experiment: {mlflow.get_experiment_by_name(f'GLUP24-{DATASET_NUMBER}-{PREDICTION}')}")
     except Exception as e:
-        log.exception(f"Error connecting to tracking server", exec_info=e)
+        # log.exception(f"Error connecting to tracking server", exec_info=e)
+        log.exception(f"Error connecting to tracking server: {e}")
         return
 
     ################# DATASETS #################
@@ -105,13 +105,14 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
         # Get training and validation data
         train_val_data = pd.read_csv(f'{datasets_dir}/{number}/{number}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
         train_val_data = process_data(train_val_data, True, impute_strategy, scale_data, encode_categorical, select_features)
-        log.debug(f"Training data info: {test_data.describe()}")
+        log.debug(f"Training data info: {train_val_data.describe()}")
         # Get testing data
         test_data = pd.read_csv(f'{datasets_dir}/{number}/{number}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
         test_data = process_data(test_data, False, impute_strategy, scale_data, encode_categorical, select_features)
         log.debug(f"Testing data info: {test_data.describe()}")
     except Exception as e:
-        log.exception(f"Error reading datasets", exec_info=e)
+        # log.exception(f"Error reading datasets", exec_info=e)
+        log.exception(f"Error reading datasets: {e}")
         return
 
     ################# PREPROCESSING #################
@@ -129,7 +130,7 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
                         .prefetch(tf.data.experimental.AUTOTUNE)
                         # .filter(lambda x, y: tf.reduce_all(y != 0))
                     )
-        log.debug(f"Training dataset size: {len(train_dataset)}")
+        log.debug(f"Training dataset size: {len(x_train)}")
         
         # Create TensorFlow datasets for validation
         validation_dataset = (tf.data.Dataset
@@ -138,7 +139,7 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
                         .prefetch(tf.data.experimental.AUTOTUNE)
                         # .filter(lambda x, y: tf.reduce_all(y != 0))
                     )
-        log.debug(f"Validation dataset size: {len(validation_dataset)}")
+        log.debug(f"Validation dataset size: {len(x_val)}")
     
         log.info("Creating testing dataset")
         # Create sequences and targets for testing
@@ -152,7 +153,8 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
                     )    
         log.debug(f"Test dataset size: {len(test_dataset)}")       
     except Exception as e:
-        log.exception(f"Error creating datasets", exec_info=e)
+        # log.exception(f"Error creating datasets", exec_info=e)
+        log.exception(f"Error creating datasets: {e}")
         return
     
     ################# BUILD MODEL #################
@@ -163,22 +165,14 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
         # Create the model with default parameters if there's a ValueError
         try:
             model_id = f"{model_name}_{model_version}"
-            model = get_model(model_id, input_shape, 1,
-                                ### LSTM ###
-                                # hidden_units=32, embedding_size=32,
-                                ### GRU ###
-                                # hidden_units=32, embedding_size=32,
-                                ### CNN ###
-                                # filters=[32, 64, 128], kernel_size=3, hidden_units=128,
-                                ### Deep Residual ###
-                                # num_blocks=7, hidden_units=300, embedding_size=32, auxiliary_variables=4
-                            )
+            model = get_model(model_id, input_shape, 1, **model_parameters)                            
             log.debug(f"Using model: {model}")
         except ValueError as e:
             log.warning(f"Invalid model: {model_id}, using defualt (LSTM_1)")
             model = get_model("LSTM_1", input_shape, 1)
         except Exception as e:
-            log.exception(f"Error getting model", exec_info=e)
+            # log.exception(f"Error getting model", exec_info=e)
+            log.exception(f"Error getting model: {e}")
             return
 
         # Get optimizer
@@ -209,16 +203,17 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
         )
         log.info("Model built successfully")
     except Exception as e:
-        log.exception(f"Error building model", exec_info=e)
+        # log.exception(f"Error building model", exec_info=e)
+        log.exception(f"Error building model: {e}")
         return
     
     try:
-        with mlflow.start_run(run_name=model_name) as run:  
+        with mlflow.start_run(run_name=run_name) as run:  
             # Define callbacks
             callbacks = [
                 mlflow.keras.MLflowCallback(run),
-                tf.keras.callbacks.TensorBoard(f"{logs_dir}/{model_name}"),
-                tf.keras.callbacks.ReduceLROnPlateau(patience=5, factor=0.2,),
+                tf.keras.callbacks.TensorBoard(f"{logs_dir}/{run_name}"),
+                tf.keras.callbacks.ReduceLROnPlateau(patience=5, factor=0.2),
                 tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True),
             ]
             ################# TRAIN #################
@@ -243,37 +238,23 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
             ############## PARAMETERS ##############
             log.info("Logging model parameters")
             # Create params for mlflow
-            # params = {
-            #     ### DATASET ###
-            #     "sequence_size": sequence_size,
+            params = {
+                ### DATASET ###
+                "sequence_size": sequence_size,
                 
-            #     ### TRAINING ###
-            #     "optimizer": optimizer,
-            #     "learning_rate": learning_rate,
-            #     "loss": loss,
-            #     "epochs": epochs,
-            #     "batch_size": batch_size,
+                ### TRAINING ###
+                "optimizer": optimizer,
+                "learning_rate": learning_rate,
+                "loss": loss,
+                "epochs": epochs,
+                "batch_size": batch_size,
                 
-            #     ### LSTM ###
-            #     # "hidden_units": hidden_units,
-            #     # "embedding_size": embedding_size,
-            #     ### GRU ### 
-            #     # "hidden_units": hidden_units,
-            #     # "embedding_size": embedding_size,
-            #     ### CNN ###
-            #     # "filters": filters,
-            #     # "kernel_size": kernel_size,
-            #     # "hidden_units": hidden_units,
-            #     ### Deep Residual ###
-            #     # "num_blocks": num_blocks,
-            #     # "hidden_units": hidden_units,
-            #     # "embedding_size": embedding_size,
-            #     # "auxiliary_variables": auxiliary_variables,
-            # }
+                ### MODEL ### 
+                **model_parameters
+            }
         
-        
-            mlflow.log_params(model_parameters)
-            log.debug(f"Model parameters: {model_parameters}")
+            mlflow.log_params(params)
+            log.debug(f"Model parameters: {params}")
 
             ################# METRICS #################
             log.info("Logging test metrics")
@@ -297,7 +278,8 @@ def train(model_name: str, model_version: int, log_level: int = logging.INFO, **
             histogram = generate_histogram_residuals(Y_test, y_pred)
             mlflow.log_figure(histogram, "histogram.png")
     except Exception as e:
-        log.exception(f"Error training model", exec_info=e)
+        # log.exception(f"Error training model", exec_info=e)
+        log.exception(f"Error training model: {e}")
         return
     
     log.info("Model training complete")

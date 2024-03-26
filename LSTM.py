@@ -1,13 +1,6 @@
 import tensorflow as tf
 from typing import Tuple
 
-MODEL_NAME = "LSTM"
-MODEL_VERSION = 1
-
-################# PARAMETERS #################
-hidden_units: int = 32
-embedding_size: int = 32
-
 def LSTM_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32, embedding_size: int = 32) -> tf.keras.Model:
     """
     Implements a time series prediction model using stacked LSTMs with dropout regularization.

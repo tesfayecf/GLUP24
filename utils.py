@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from keras import backend as K
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import SelectKBest, f_regression
@@ -219,8 +220,6 @@ def get_loss(loss):
         return tf.keras.losses.MeanSquaredError()
     elif loss == 'mae':
         return tf.keras.losses.MeanAbsoluteError()
-    elif loss == 'rmse':
-        return tf.keras.losses.RootMeanSquaredError()
     elif loss == 'mape':
         return tf.keras.losses.MeanAbsolutePercentageError()
     elif loss == 'msle':
