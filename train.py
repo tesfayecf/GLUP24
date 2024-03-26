@@ -14,8 +14,6 @@ from Models.model import get_model
 
 DATASET_NUMBER = 559
 PREDICTION = 30
-
-# MLFlow
 HOST = "192.168.1.19"
 PORT = 7777
 EXPERIMENT_NAME = "GLUP24"
@@ -60,24 +58,19 @@ target_columns = [
     'glucose_level'
 ]
 
-################ DATASET ################
-number = DATASET_NUMBER
+######### DEFAULT DATASET PARAMETERS #########
 sequence_size = 12
 prediction_time = int(PREDICTION / 5)
-impute_strategy = False
-scale_data = False
-encode_categorical = False
-select_features = False
 validation_split = 0.2
-############### TRAINING ################
+######### DEFAULT TRAINING PARAMETERS #########
 learning_rate = 0.001
 epochs = 50
 optimizer = 'Adam'
 loss = 'mse'
-batch_size = 64
-##########################################
+batch_size = 32
+##############################################
 
-def train_model(model_name: str, model_version: int, **model_parameters):
+def train_model(model_name: str, model_version: int, **parameters) -> float:
     # log = structlog.get_logger()
     # structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(LOG_LEVEL))
     log = logging.getLogger(__name__)
@@ -87,6 +80,17 @@ def train_model(model_name: str, model_version: int, **model_parameters):
     timestamp = int(time.time())
     run_name = f"{model_name}_{model_version}-{DATASET_NUMBER}-{PREDICTION}-[{timestamp}]"
     log.info(f"Model run name: {run_name}")
+    
+    # Get dataset parameters
+    sequence_size = parameters.get('sequence_size', sequence_size)
+    prediction_time = parameters.get('prediction_time', prediction_time)
+    validation_split = parameters.get('validation_split', validation_split)
+    # Get training parameters
+    learning_rate = parameters.get('learning_rate', learning_rate)
+    epochs = parameters.get('epochs', epochs)
+    optimizer = parameters.get('optimizer', optimizer)
+    loss = parameters.get('loss', loss)
+    batch_size = parameters.get('batch_size', batch_size)
     
     ################# TRACKING #################
     try:
@@ -105,12 +109,12 @@ def train_model(model_name: str, model_version: int, **model_parameters):
     try:
         log.info("Reading datasets")
         # Get training and validation data
-        train_val_data = pd.read_csv(f'{datasets_dir}/{number}/{number}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
-        train_val_data = process_data(train_val_data, True, impute_strategy, scale_data, encode_categorical, select_features)
+        train_val_data = pd.read_csv(f'{datasets_dir}/{DATASET_NUMBER}/{DATASET_NUMBER}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
+        train_val_data = process_data(train_val_data, False)
         log.debug(f"Training data info: {train_val_data.describe()}")
         # Get testing data
-        test_data = pd.read_csv(f'{datasets_dir}/{number}/{number}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
-        test_data = process_data(test_data, False, impute_strategy, scale_data, encode_categorical, select_features)
+        test_data = pd.read_csv(f'{datasets_dir}/{DATASET_NUMBER}/{DATASET_NUMBER}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
+        test_data = process_data(test_data, False)
         log.debug(f"Testing data info: {test_data.describe()}")
     except Exception as e:
         # log.exception(f"Error reading datasets", exec_info=e)
@@ -167,7 +171,7 @@ def train_model(model_name: str, model_version: int, **model_parameters):
         # Create the model with default parameters if there's a ValueError
         try:
             model_id = f"{model_name}_{model_version}"
-            model = get_model(model_id, input_shape, 1, **model_parameters)                            
+            model = get_model(model_id, input_shape, 1, **parameters)                            
             log.debug(f"Using model: {model}")
         except ValueError as e:
             log.warning(f"Invalid model: {model_id}, using defualt (LSTM_1)")
@@ -243,16 +247,18 @@ def train_model(model_name: str, model_version: int, **model_parameters):
             params = {
                 ### DATASET ###
                 "sequence_size": sequence_size,
+                "prediction_time": prediction_time,
+                "validation_split": validation_split,
                 
                 ### TRAINING ###
-                "optimizer": optimizer,
                 "learning_rate": learning_rate,
-                "loss": loss,
                 "epochs": epochs,
+                "optimizer": optimizer,
+                "loss": loss,
                 "batch_size": batch_size,
                 
                 ### MODEL ### 
-                **model_parameters
+                **parameters
             }
         
             mlflow.log_params(params)
@@ -285,3 +291,4 @@ def train_model(model_name: str, model_version: int, **model_parameters):
         return
     
     log.info("Model training complete")
+    return metrics['mae']
