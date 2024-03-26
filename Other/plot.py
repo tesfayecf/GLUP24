@@ -41,7 +41,7 @@ def generate_scatter_plot(y_true, y_pred):
 def generate_histogram_residuals(y_true, y_pred):
    residuals = y_pred - y_true
    fig = plt.figure(figsize=fig_size)  # Create figure object
-   plt.hist(residuals, bins=50, color=color_palette[1])
+   plt.hist(residuals, bins=50, color=color_palette[0])
    plt.xlabel("Residuals", fontsize=14)
    plt.ylabel("Frequency", fontsize=14)
    plt.title("Histogram of Residuals", fontsize=16)

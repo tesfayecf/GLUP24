@@ -16,8 +16,8 @@ DATASET_NUMBER = 559
 PREDICTION = 30
 
 # MLFlow
-PORT = 7777
 HOST = "192.168.1.19"
+PORT = 7777
 EXPERIMENT_NAME = "GLUP24"
 LOG_LEVEL = logging.INFO
 
@@ -73,7 +73,7 @@ validation_split = 0.2
 learning_rate = 0.001
 epochs = 50
 optimizer = 'Adam'
-loss = 'hinge'
+loss = 'mse'
 batch_size = 64
 ##########################################
 

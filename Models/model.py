@@ -1,10 +1,10 @@
 import tensorflow as tf
 from typing import Tuple
 
-from LSTM import LSTM_1
-from GRU import GRU_1
-from CNN import CNN_1
-from DR import DR_1
+from Models.LSTM import LSTM_1
+from Models.GRU import GRU_1
+from Models.CNN import CNN_1
+from Models.DR import DR_1
 
 def get_model(model_id: str, input_shape: Tuple[int, ...], output_shape: int, **model_parameters) -> tf.keras.Model:
     """
