@@ -10,7 +10,7 @@
         "--host",
         "127.0.0.1",
         "--port",
-        "5000",
+        "7777",
         "--backend-store-uri",
         "./MLflow/mlruns",
         "--artifacts-destination",

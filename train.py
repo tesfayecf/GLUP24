@@ -8,15 +8,17 @@ import tensorflow as tf
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
-from utils import *
-from plot import *
-from model import get_model
+from Other.utils import *
+from Other.plot import *
+from Models.model import get_model
 
 DATASET_NUMBER = 559
 PREDICTION = 30
 
 # MLFlow
-PORT = 5000
+PORT = 7777
+HOST = "192.168.1.19"
+EXPERIMENT_NAME = "GLUP24"
 LOG_LEVEL = logging.INFO
 
 models_dir = "./Models"
@@ -90,10 +92,10 @@ def train_model(model_name: str, model_version: int, **model_parameters):
     try:
         # Connect to tracking server
         log.info("Connecting to tracking server")
-        mlflow.set_tracking_uri(f"http://localhost:{PORT}")
+        mlflow.set_tracking_uri(f"http://{HOST}:{PORT}")
         # Set experiment name and create experiment if it doesn't exist
-        mlflow.set_experiment(f"GLUP24-{DATASET_NUMBER}-{PREDICTION}")
-        log.debug(f"Experiment: {mlflow.get_experiment_by_name(f'GLUP24-{DATASET_NUMBER}-{PREDICTION}')}")
+        mlflow.set_experiment(f"{EXPERIMENT_NAME}-{DATASET_NUMBER}-{PREDICTION}")
+        log.debug(f"Experiment: {mlflow.get_experiment_by_name(f'{EXPERIMENT_NAME}-{DATASET_NUMBER}-{PREDICTION}')}")
     except Exception as e:
         # log.exception(f"Error connecting to tracking server", exec_info=e)
         log.exception(f"Error connecting to tracking server: {e}")
