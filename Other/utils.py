@@ -198,6 +198,44 @@ def to_sequences_multi(obs, seq_size, prediction_time, sequence_columns, target_
 
     return np.array(x), np.array(y)
 
+def to_target(obs, sequence_columns, target_columns):
+    """
+    This function creates batches of sequences and targets for training a model.
+
+    Args:
+        obs (list): The list of observations (time series data).
+        seq_size (int): The size of the sequence window.
+        prediction_time (int): The number of steps ahead to predict.
+        sequence_columns (list): The list of column indices to be considered as sequence values.
+        target_columns (list): The list of column indices to be considered as prediction values.
+
+    Returns:
+        tuple: A tuple containing two NumPy arrays:
+          - x: The sequences (training data).
+          - y: The targets (predictions).
+    """
+    # Check if provided columns exist in the DataFrame
+    if not all(col in obs.columns for col in sequence_columns):
+        raise ValueError("One or more sequence columns not found in DataFrame")
+    if not all(col in obs.columns for col in target_columns):
+        raise ValueError("One or more target columns not found in DataFrame")
+     
+    x = []
+    y = []
+
+    # Loop through observations, ensuring enough data for window and target
+    for i in range(len(obs)):
+        # Get the sequence window using slicing
+        features = obs.iloc[i][sequence_columns].values
+
+        # Extract the target value
+        target = obs.iloc[i][target_columns].values
+
+        # # Append sequence and target
+        x.append(features)
+        y.append(target)
+
+    return np.array(x), np.array(y)
 ################# MODEL #################
 
 def get_optimizer(optimizer, learning_rate):
