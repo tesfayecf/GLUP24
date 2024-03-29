@@ -2,6 +2,7 @@ mlruns
 mlartifacts
 Logs
 MLFlow
+Fantasy
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
