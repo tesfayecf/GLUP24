@@ -4,7 +4,7 @@ from typing import Tuple
 from Models.LSTM import LSTM_1
 from Models.GRU import GRU_1
 from Models.CNN import CNN_1
-from Models.DR import DR_1
+from Models.DR import DR_1, DR_2
 
 def get_model(model_id: str, input_shape: Tuple[int, ...], output_shape: int, **model_parameters) -> tf.keras.Model:
     """
@@ -26,12 +26,23 @@ def get_model(model_id: str, input_shape: Tuple[int, ...], output_shape: int, **
     """
 
     if model_id == "LSTM_1":
-        return LSTM_1(input_shape, output_shape, **model_parameters)
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        return LSTM_1(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size)
     elif model_id == "GRU_1":
-        return GRU_1(input_shape, output_shape, **model_parameters)
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        return GRU_1(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size)
     elif model_id == "CNN_1":
-        return CNN_1(input_shape, output_shape, **model_parameters)
+        filters = model_parameters.get("filters", [32, 64, 128])
+        kernel_size = model_parameters.get("kernel_size", 3)
+        hidden_units = model_parameters.get("hidden_units", 128)
+        return CNN_1(input_shape, output_shape, filters=filters, kernel_size=kernel_size, hidden_units=hidden_units)
     elif model_id == "DR_1":
-        return DR_1(input_shape, output_shape, **model_parameters)
+        num_blocks = model_parameters.get("num_blocks", 3)
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        auxiliary_variables = model_parameters.get("auxiliary_variables", 17)
+        return DR_2(input_shape, output_shape, num_blocks=num_blocks, hidden_units=hidden_units, embedding_size=embedding_size, auxiliary_variables=auxiliary_variables)
     else:
         raise ValueError(f"Invalid model id: {model_id}")

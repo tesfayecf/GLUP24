@@ -16,7 +16,6 @@ def LSTM_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: in
     Returns:
         tf.keras.Model: A compiled time series prediction model.
     """
-
     # Feature input layer
     input_features = tf.keras.layers.Input(shape=input_shape)
 
