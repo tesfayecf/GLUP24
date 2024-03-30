@@ -1,7 +1,7 @@
 import tensorflow as tf
 from typing import Tuple
 
-from Models.LSTM import LSTM_1
+from Models.LSTM import LSTM_1, LSTM_2, LSTM_3, LSTM_4, LSTM_5
 from Models.GRU import GRU_1
 from Models.CNN import CNN_1
 from Models.DR import DR_1, DR_2
@@ -29,6 +29,31 @@ def get_model(model_id: str, input_shape: Tuple[int, ...], output_shape: int, **
         hidden_units = model_parameters.get("hidden_units", 32)
         embedding_size = model_parameters.get("embedding_size", 32)
         return LSTM_1(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size)
+    if model_id == "LSTM_2":
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        return LSTM_2(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size)
+    if model_id == "LSTM_3":
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        return LSTM_3(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size)
+    if model_id == "LSTM_4":
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        num_residual_blocks = model_parameters.get("num_residual_blocks", 2)
+        dropout_rate = model_parameters.get("dropout_rate", 0.3)
+        return LSTM_4(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size, 
+                      num_residual_blocks=num_residual_blocks, dropout_rate=dropout_rate)
+    if model_id == "LSTM_5":
+        hidden_units = model_parameters.get("hidden_units", 32)
+        embedding_size = model_parameters.get("embedding_size", 32)
+        num_residual_blocks = model_parameters.get("num_residual_blocks", 2)
+        dropout_rate = model_parameters.get("dropout_rate", 0.3)
+        conv_filters = model_parameters.get("conv_filters", 32)
+        conv_kernel_size = model_parameters.get("conv_kernel_size", 3)
+        return LSTM_5(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size, 
+                      num_residual_blocks=num_residual_blocks, dropout_rate=dropout_rate,
+                      conv_filters=conv_filters, conv_kernel_size=conv_kernel_size)
     elif model_id == "GRU_1":
         hidden_units = model_parameters.get("hidden_units", 32)
         embedding_size = model_parameters.get("embedding_size", 32)

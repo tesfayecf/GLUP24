@@ -10,67 +10,58 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 
 from Other.utils import *
 from Other.plot import *
+from Other.columns import columns, feature_columns, target_columns
 from Models.model import get_model
 
 DATASET_NUMBER = 559
 PREDICTION = 30
-HOST = "192.168.1.19"
+# HOST = "192.168.1.19"
+HOST = "localhost"
 PORT = 7777
-EXPERIMENT_NAME = "GLUP24"
+EXPERIMENT_NAME = "TEST"
 LOG_LEVEL = logging.INFO
 
-models_dir = "./Models"
-# models_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Models'
 datasets_dir = "./Datasets"
 # datasets_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Dataset'
 logs_dir = "./Logs"
 # logs_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Logs'
 
-columns = [
-    'year', 'month', 'day', 'hour', 'minute', 'second', 
-    'glucose_level', 
-    'finger_stick', 'basal', 'bolus', 'sleep', 'work', 'stressors', 'hypo_event', 'illness', 'exercise', 'basis_heart_rate',
-    'basis_gsr', 'basis_skin_temperature', 'basis_air_temperature', 'basis_step', 'basis_sleep', 'meal', 'type_of_meal'
-]
-
-feature_columns = [
-    'glucose_level',
-    'basis_heart_rate',
-    'basis_sleep',
-    'basis_step',
-    'basal',
-    'finger_stick',
-    'basis_skin_temperature',
-    'basis_air_temperature',
-    'work',
-    'exercise',
-    'bolus',
-    'meal',
-    'stressors',
-    'illness',
-    'type_of_meal',
-    'hypo_event',
-    'basis_gsr',
-    'sleep'
-]
-
-target_columns = [
-    'glucose_level'
-]
-
 ######### DEFAULT DATASET PARAMETERS #########
-sequence_size = 12
-prediction_time = int(PREDICTION / 5)
-validation_split = 0.2
+sequence_size_ = 12
+prediction_time_ = int(PREDICTION / 5)
+validation_split_ = 0.2
 ######### DEFAULT TRAINING PARAMETERS #########
-learning_rate = 0.001
-epochs = 50
-optimizer = 'Adam'
-loss = 'mse'
-batch_size = 32
+learning_rate_ = 0.001
+epochs_ = 50
+optimizer_ = 'Adam'
+loss_ = 'mse'
+batch_size_ = 32 # best: 128
 ##############################################
 
 def train_model(model_name: str, model_version: int, **parameters) -> float:
+    """Trains a machine learning model on a given dataset, evaluates its perfomance
+    and logs results along with the model to MLflow.
+
+    Args:
+        model_name: The name of the model architecture to use (e.g., "LSTM_1").
+        model_version: The version of the model architecture being trained.
+        parameters: A dictionary containing optional hyperparameter values to override defaults.
+            - sequence_size (int): The number of timesteps to include in a sequence for training (default: 12).
+            - prediction_time (int): The number of timesteps to predict in the future (default: PREDICTION / 5, where PREDICTION is a constant).
+            - validation_split (float): The proportion of the training data to use for validation (default: 0.2).
+            - learning_rate (float): The learning rate for the optimizer (default: 0.001).
+            - epochs (int): The number of epochs to train the model for (default: 50).
+            - optimizer (str): The optimizer to use for training (default: "Adam"). Supported optimizers include "Adam" and others (refer to TensorFlow documentation).
+            - loss (str): The loss function to use for training (default: "mse"). Supported loss functions include "mse" (mean squared error) and others (refer to TensorFlow documentation).
+            - batch_size (int): The number of samples to process in each batch during training (default: 32).
+
+    Returns:
+        The mean absolute error (MAE) achieved by the model on the validation dataset.
+
+    Raises:
+        Exception: If any errors occur during training, evaluation, or logging.
+    """
+    
     # log = structlog.get_logger()
     # structlog.configure(wrapper_class=structlog.make_filtering_bound_logger(LOG_LEVEL))
     log = logging.getLogger(__name__)
@@ -82,15 +73,15 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
     log.info(f"Model run name: {run_name}")
     
     # Get dataset parameters
-    sequence_size = parameters.get('sequence_size', sequence_size)
-    prediction_time = parameters.get('prediction_time', prediction_time)
-    validation_split = parameters.get('validation_split', validation_split)
+    sequence_size = parameters.get('sequence_size', sequence_size_)
+    prediction_time = parameters.get('prediction_time', prediction_time_)
+    validation_split = parameters.get('validation_split', validation_split_)
     # Get training parameters
-    learning_rate = parameters.get('learning_rate', learning_rate)
-    epochs = parameters.get('epochs', epochs)
-    optimizer = parameters.get('optimizer', optimizer)
-    loss = parameters.get('loss', loss)
-    batch_size = parameters.get('batch_size', batch_size)
+    learning_rate = parameters.get('learning_rate', learning_rate_)
+    epochs = parameters.get('epochs', epochs_)
+    optimizer = parameters.get('optimizer', 'Adam')
+    loss = parameters.get('loss', 'mae')
+    batch_size = parameters.get('batch_size', batch_size_)
     
     ################# TRACKING #################
     try:
@@ -112,10 +103,6 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
         train_val_data = pd.read_csv(f'{datasets_dir}/{DATASET_NUMBER}/{DATASET_NUMBER}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
         train_val_data = process_data(train_val_data, False)
         log.debug(f"Training data info: {train_val_data.describe()}")
-        # Get testing data
-        test_data = pd.read_csv(f'{datasets_dir}/{DATASET_NUMBER}/{DATASET_NUMBER}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
-        test_data = process_data(test_data, False)
-        log.debug(f"Testing data info: {test_data.describe()}")
     except Exception as e:
         # log.exception(f"Error reading datasets", exec_info=e)
         log.exception(f"Error reading datasets: {e}")
@@ -146,18 +133,6 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
                         # .filter(lambda x, y: tf.reduce_all(y != 0))
                     )
         log.debug(f"Validation dataset size: {len(x_val)}")
-    
-        log.info("Creating testing dataset")
-        # Create sequences and targets for testing
-        X_test, Y_test = to_sequences_multi(test_data, sequence_size, prediction_time, feature_columns, target_columns)
-        # Create test dataset
-        test_dataset = (tf.data.Dataset
-                        .from_tensor_slices((X_test, Y_test))
-                        .batch(1)
-                        .prefetch(tf.data.experimental.AUTOTUNE)
-                        # .filter(lambda x, y: tf.reduce_all(y != 0))
-                    )    
-        log.debug(f"Test dataset size: {len(test_dataset)}")       
     except Exception as e:
         # log.exception(f"Error creating datasets", exec_info=e)
         log.exception(f"Error creating datasets: {e}")
@@ -213,6 +188,7 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
         log.exception(f"Error building model: {e}")
         return
     
+    ################# TRAIN AND TEST MODEL #################
     try:
         with mlflow.start_run(run_name=run_name) as run:  
             # Define callbacks
@@ -222,24 +198,6 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
                 tf.keras.callbacks.ReduceLROnPlateau(patience=5, factor=0.2),
                 tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True),
             ]
-            ################# TRAIN #################
-            # Train the model
-            log.info("Starting training")
-            start_time = time.time()
-            model.fit(train_dataset, validation_data=validation_dataset, epochs=epochs, callbacks=callbacks)
-            log.debug(f"Training time: {time.time() - start_time}")     
-        
-            ################# TEST #################
-            # Run test inference
-            log.info("Running test inference")
-            start_time = time.time()
-            y_pred = model.predict(test_dataset)
-            log.debug(f"Inference time: {time.time() - start_time}")
-            
-            ################# MODEL #################
-            # Log an instance of the trained model for later use
-            log.info("Logging trained model")
-            mlflow.tensorflow.log_model(model, artifact_path="model")
             
             ############## PARAMETERS ##############
             log.info("Logging model parameters")
@@ -263,28 +221,49 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
         
             mlflow.log_params(params)
             log.debug(f"Model parameters: {params}")
+            
+            ################# TRAIN #################
+            # Train the model
+            log.info("Starting training")
+            start_time = time.time()
+            model.fit(train_dataset, epochs=epochs, callbacks=callbacks)
+            log.debug(f"Training time: {time.time() - start_time}")     
+        
+            ################# TEST #################
+            # Run test inference
+            log.info("Running test inference")
+            start_time = time.time()
+            y_pred = model.predict(validation_dataset)
+            log.debug(f"Inference time: {time.time() - start_time}")
+            
+            ################# MODEL #################
+            # Log an instance of the trained model for later use
+            log.info("Logging trained model")
+            mlflow.tensorflow.log_model(model, artifact_path="model")
 
             ################# METRICS #################
             log.info("Logging test metrics")
             # Calculate test metrics
             metrics = {
-                "mae": mean_absolute_error(Y_test, y_pred), 
-                "mse": mean_squared_error(Y_test, y_pred), 
-                "rmse": np.sqrt(mean_squared_error(Y_test, y_pred)), 
-                "r2": r2_score(Y_test, y_pred)
+                "mae": mean_absolute_error(y_val, y_pred), 
+                "mse": mean_squared_error(y_val, y_pred), 
+                "rmse": np.sqrt(mean_squared_error(y_val, y_pred)), 
+                "r2": r2_score(y_val, y_pred)
             }
             mlflow.log_metrics(metrics)
             log.debug(f"Test metrics: {metrics}")
             
             ################# CHARTS #################
             # Generate chart of real values vs prediction over the test data
+            # https://safjan.com/regression-model-errors-plot/
             log.info("Generating charts")
-            line_plot = generate_line_plot(Y_test, y_pred)
+            line_plot = generate_line_plot(y_val, y_pred)
             mlflow.log_figure(line_plot, "real_vs_prediction.png")
-            scatter_plot = generate_scatter_plot(Y_test, y_pred)
+            scatter_plot = generate_scatter_plot(y_val, y_pred)
             mlflow.log_figure(scatter_plot, "scatter.png")
-            histogram = generate_histogram_residuals(Y_test, y_pred)
+            histogram = generate_histogram_residuals(y_val, y_pred)
             mlflow.log_figure(histogram, "histogram.png")
+            
     except Exception as e:
         # log.exception(f"Error training model", exec_info=e)
         log.exception(f"Error training model: {e}")
