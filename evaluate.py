@@ -21,9 +21,7 @@ EXPERIMENT_NAME = "GLUP24"
 LOG_LEVEL = logging.INFO
 
 datasets_dir = "./Datasets"
-# datasets_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Dataset'
 logs_dir = "./Logs"
-# logs_dir = '/content/drive/MyDrive/UNIVERSITAT/Inteligencia artificial/Treball/Logs'
 
 def evaluate(model, mlflow_run=None, **parameters):
     """Evaluates the trained model on the test dataset and logs results to MLflow.
@@ -80,8 +78,12 @@ def evaluate(model, mlflow_run=None, **parameters):
                         .from_tensor_slices((X_test, Y_test))
                         .batch(1)
                         .prefetch(tf.data.experimental.AUTOTUNE)
-                        # .filter(lambda x, y: tf.reduce_all(y != 0))
                     )    
+        
+        # Filter values that are 0 for test data
+        X_test = X_test[Y_test[:,0] != 0]
+        Y_test = Y_test[Y_test[:,0] != 0]
+        
         log.debug(f"Test dataset size: {len(test_dataset)}")       
     except Exception as e:
         # log.exception(f"Error creating datasets", exec_info=e)
@@ -99,10 +101,10 @@ def evaluate(model, mlflow_run=None, **parameters):
         ################# METRICS #################
         # Calculate evaluation metrics
         metrics = {
-            "mae": mean_absolute_error(Y_test, y_pred),
-            "mse": mean_squared_error(Y_test, y_pred),
-            "rmse": np.sqrt(mean_squared_error(Y_test, y_pred)),
-            "r2": r2_score(Y_test, y_pred)
+            "TEST_mae": mean_absolute_error(Y_test, y_pred),
+            "TEST_mse": mean_squared_error(Y_test, y_pred),
+            "TETS_rmse": np.sqrt(mean_squared_error(Y_test, y_pred)),
+            "TEST_r2": r2_score(Y_test, y_pred)
         }
         log.info(f"Evaluation metrics: {metrics}")
 
