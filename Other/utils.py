@@ -1,13 +1,14 @@
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from typing import List
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import SelectKBest, f_regression
 
 ################ DATASET ################
 
-def create_time_index(dataset, time_index):
+def create_time_index(dataset):
     """
     Combines separate date and time columns into a single datetime column in a pandas DataFrame.
     
@@ -27,7 +28,7 @@ def create_time_index(dataset, time_index):
         raise ValueError(f"Missing required columns: {', '.join(set(required_columns) - set(dataset.columns))}")
     
     # Combine date and time columns into a single datetime column
-    dataset['time'] = pd.to_datetime(
+    dataset['timestamp'] = pd.to_datetime(
         {
             'year': dataset['year'],
             'month': dataset['month'],
@@ -39,21 +40,14 @@ def create_time_index(dataset, time_index):
     )
 
     # convert the datetime column to an integer
-    dataset['timestamp'] = dataset['time'].astype('int64')
+    dataset['timestamp'] = dataset['timestamp'].astype('int64')
 
     # divide the resulting integer by the number of nanoseconds in a second
     dataset['timestamp'] = dataset['timestamp'].div(10**9)
 
-    # Set the combined datetime column as the index
-    if time_index:
-        dataset.set_index('timestamp', inplace=True)
-    
-    # Optionally remove the original columns if desired
-    dataset.drop(columns=required_columns + ['time'], inplace=True)
-    
     return dataset
 
-def process_data(df, time_index=True, impute_strategy=False, scale_data=False, encode_categorical=False, select_features=False):
+def process_data(df, time_index=False, impute_strategy=False, scale_data=False, select_features=False):
     """
     Preprocesses the input DataFrame:
     1. Replaces commas with periods in all values.
@@ -66,11 +60,10 @@ def process_data(df, time_index=True, impute_strategy=False, scale_data=False, e
     
     Args:
         df (DataFrame): Input DataFrame.
-        time_index (bool): Whether to create a time index (default True).
+        time_index (bool): Whether to create a time index (default False).
         impute_strategy (str): Strategy to use for imputing missing values ('mean', 'median', 'most_frequent').
-        scale_data (bool): Whether to scale the data (default True).
-        encode_categorical (bool): Whether to encode categorical variables (default True).
-        select_features (bool): Whether to select the most relevant features (default True).
+        scale_data (bool): Whether to scale the data (default False).
+        select_features (bool): Whether to select the most relevant features (default False).
 
     Returns:
         DataFrame: Preprocessed DataFrame.
@@ -82,37 +75,38 @@ def process_data(df, time_index=True, impute_strategy=False, scale_data=False, e
     df = df.astype(float)
 
     # Create time index if specified
-    df = create_time_index(df, time_index)  # Assuming create_time_index function is defined
+    if time_index:
+        df = create_time_index(df, time_index)  # Assuming create_time_index function is defined
+
+    # Remove time columns
+    df = df.drop(['year', 'month', 'day', 'hour', 'minute', 'second'], axis=1)
     
     # Impute missing values
     if impute_strategy:
         imputer = SimpleImputer(strategy=impute_strategy)
         df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
     
-    # Scale the data
+    # Scale the data 
     if scale_data:
         scaler = StandardScaler()
-        df[df.columns] = scaler.fit_transform(df[df.columns])
-    
-    # Encode categorical variables
-    if encode_categorical:
-        # Assuming the last column is the target column and the rest are features
-        features = df.iloc[:, :-1]
-        target = df.iloc[:, -1]
-        encoder = LabelEncoder()
-        features = features.apply(encoder.fit_transform)
-        df = pd.concat([features, target], axis=1)
+        # Assuming the first column is the target column and the rest are features
+        target = df.iloc[:, 0]
+        # Remove the target column from the DataFrame
+        df = df.iloc[:, 1:]
+        # Scale the features
+        df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+        df = pd.concat([target, df], axis=1)  # Re-add the target column to the DataFrame
     
     # Select the most relevant features
     if select_features:
-        # Assuming the last column is the target column and the rest are features
-        features = df.iloc[:, :-1]
-        target = df.iloc[:, -1]
+        # Assuming the first column is the target column and the rest are features
+        features = df.iloc[:, 1:]
+        target = df.iloc[:, 0]
         selector = SelectKBest(score_func=f_regression, k=min(10, len(features.columns)))
         features_selected = selector.fit_transform(features, target)
         selected_columns = features.columns[selector.get_support()]
         df = pd.DataFrame(features_selected, columns=selected_columns)
-        df = pd.concat([df, target], axis=1)
+        df = pd.concat([target, df], axis=1)
         
     return df
 
@@ -153,7 +147,7 @@ def to_sequences(obs, seq_size, prediction_time):
         
     return np.array(x), np.array(y)
 
-def to_sequences_multi(obs, seq_size, prediction_time, sequence_columns, target_columns):
+def to_sequences_multi(obs: pd.DataFrame, seq_size: int, prediction_time: int, target_columns: List[str]):
     """
     This function creates batches of sequences and targets for training a model.
 
@@ -161,7 +155,6 @@ def to_sequences_multi(obs, seq_size, prediction_time, sequence_columns, target_
         obs (list): The list of observations (time series data).
         seq_size (int): The size of the sequence window.
         prediction_time (int): The number of steps ahead to predict.
-        sequence_columns (list): The list of column indices to be considered as sequence values.
         target_columns (list): The list of column indices to be considered as prediction values.
 
     Returns:
@@ -169,9 +162,12 @@ def to_sequences_multi(obs, seq_size, prediction_time, sequence_columns, target_
           - x: The sequences (training data).
           - y: The targets (predictions).
     """
-    # Check if provided columns exist in the DataFrame
-    if not all(col in obs.columns for col in sequence_columns):
-        raise ValueError("One or more sequence columns not found in DataFrame")
+    # Get feature columns
+    feature_columns = list(obs.columns)
+    for target_column in target_columns:
+        feature_columns.remove(target_column)
+
+    # Check target columns are valid
     if not all(col in obs.columns for col in target_columns):
         raise ValueError("One or more target columns not found in DataFrame")
 
@@ -181,13 +177,11 @@ def to_sequences_multi(obs, seq_size, prediction_time, sequence_columns, target_
     if prediction_time < 1:
         raise ValueError("Prediction time must be greater than zero")
         
-    x = []
-    y = []
-
+    x, y = [], []
     # Loop through observations, ensuring enough data for window and target
     for i in range(seq_size, len(obs) - prediction_time - 1):
         # Get the sequence window using slicing
-        window = obs.iloc[i - seq_size:i][sequence_columns].values
+        window = obs.iloc[i - seq_size:i][feature_columns].values
 
         # Extract the target value
         after_window = obs.iloc[i + prediction_time - 1][target_columns].values
@@ -236,6 +230,7 @@ def to_target(obs, sequence_columns, target_columns):
         y.append(target)
 
     return np.array(x), np.array(y)
+
 ################# MODEL #################
 
 def get_optimizer(optimizer, learning_rate):
