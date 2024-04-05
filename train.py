@@ -35,7 +35,7 @@ learning_rate_ = 0.001
 epochs_ = 50
 optimizer_ = 'Adam'
 loss_ = 'mse'
-batch_size_ = 32 # best: 128
+batch_size_ = 128 # best: 128
 ##############################################
 
 def train_model(model_name: str, model_version: int, **parameters) -> float:
@@ -101,7 +101,7 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
         log.info("Reading datasets")
         # Get training and validation data
         train_val_data = pd.read_csv(f'{datasets_dir}/{DATASET_NUMBER}/{DATASET_NUMBER}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
-        train_val_data = process_data(train_val_data, False)
+        train_val_data = process_data(train_val_data, scale_data=True)
         log.debug(f"Training data info: {train_val_data.describe()}")
     except Exception as e:
         # log.exception(f"Error reading datasets", exec_info=e)
@@ -112,7 +112,7 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
     try:
         log.info("Creating training and validation datasets")
         # Create sequences and targets for training
-        X_train_val, Y_train_val = to_sequences_multi(train_val_data,  sequence_size, prediction_time, feature_columns, target_columns)
+        X_train_val, Y_train_val = to_sequences_multi(train_val_data,  sequence_size, prediction_time, target_columns)
         # Split training and validation data
         x_train, x_val, y_train, y_val = train_test_split(X_train_val, Y_train_val, test_size=validation_split, random_state=42)
         # Create TensorFlow datasets for training
@@ -121,16 +121,19 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
                         .batch(batch_size)
                         .shuffle(len(x_train))
                         .prefetch(tf.data.experimental.AUTOTUNE)
-                        # .filter(lambda x, y: tf.reduce_all(y != 0))
                     )
         log.debug(f"Training dataset size: {len(x_train)}")
+        
+        # Filter values that are 0 for validation data
+        x_val = x_val[y_val[:,0] != 0]
+        y_val = y_val[y_val[:,0] != 0]
         
         # Create TensorFlow datasets for validation
         validation_dataset = (tf.data.Dataset
                         .from_tensor_slices((x_val, y_val))
                         .batch(batch_size)
+                        .shuffle(len(x_val))
                         .prefetch(tf.data.experimental.AUTOTUNE)
-                        # .filter(lambda x, y: tf.reduce_all(y != 0))
                     )
         log.debug(f"Validation dataset size: {len(x_val)}")
     except Exception as e:
@@ -146,11 +149,11 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
         # Create the model with default parameters if there's a ValueError
         try:
             model_id = f"{model_name}_{model_version}"
-            model = get_model(model_id, input_shape, 1, **parameters)                            
+            model = get_model(model_id, input_shape, len(target_columns), **parameters)                            
             log.debug(f"Using model: {model}")
         except ValueError as e:
             log.warning(f"Invalid model: {model_id}, using defualt (LSTM_1)")
-            model = get_model("LSTM_1", input_shape, 1)
+            model = get_model("LSTM_1", input_shape, len(target_columns))
         except Exception as e:
             # log.exception(f"Error getting model", exec_info=e)
             log.exception(f"Error getting model: {e}")
@@ -220,6 +223,7 @@ def train_model(model_name: str, model_version: int, **parameters) -> float:
             }
         
             mlflow.log_params(params)
+            mlflow.log_dict(params, "parameters.json")
             log.debug(f"Model parameters: {params}")
             
             ################# TRAIN #################
