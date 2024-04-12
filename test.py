@@ -1,10 +1,17 @@
 import os
+import json
 import mlflow
 import logging
 import tempfile
 import structlog
+import numpy as np
 import pandas as pd
 import tensorflow as tf
+from sklearn.metrics import (
+    mean_absolute_error, mean_squared_error, r2_score, 
+    mean_absolute_percentage_error, median_absolute_error, 
+    mean_squared_log_error, explained_variance_score
+)
 from Misc.utils import *
 from Misc.plot import *
 from Misc.columns import columns, target_columns
@@ -22,12 +29,14 @@ sequence_size_: int = 12
 scale_data_: bool = False
 select_features_: bool = False
 
-def evaluate(run_id: str):
-    """Evaluate the trained model on the test dataset without logging to mlflow.
+def test(run_id: str):
+    """Test the trained model on the test dataset.
 
     Args:
         run_id: The run identifier the evaluation is being made.
         
+    Returns:
+        A dictionary containing the calculated test metrics.
     """
 
     log = structlog.get_logger()
@@ -125,10 +134,36 @@ def evaluate(run_id: str):
         # Run model inference on the test dataset
         y_pred = model.predict(test_dataset)
 
-        ################# CHARTS #################
-        # Generate chart of real values vs prediction over the test data
-        log.info("Generating charts")
-        line_plot = get_line_plot(Y_test, y_pred, True)
+        with mlflow.start_run(run_id=run_id) as log_run:
+            ################# METRICS #################
+            # Calculate evaluation metrics
+            TEST_metrics = {
+                "TEST_mae": mean_absolute_error(Y_test, y_pred), 
+                "TEST_mse": mean_squared_error(Y_test, y_pred), 
+                "TEST_rmse": np.sqrt(mean_squared_error(Y_test, y_pred)), 
+                "TEST_r2": r2_score(Y_test, y_pred),
+                "TEST_mape": mean_absolute_percentage_error(Y_test, y_pred),
+                "TEST_medae": median_absolute_error(Y_test, y_pred),
+                "TEST_msle": mean_squared_log_error(Y_test, y_pred),
+                "TEST_explained_variance": explained_variance_score(Y_test, y_pred)
+            }
+            # Log metrics to existing MLflow run
+            mlflow.log_metrics(TEST_metrics, run_id=run_id)  
+            log.debug(f"Test metrics: {TEST_metrics}")
+
+            ################# CHARTS #################
+            # Generate chart of real values vs prediction over the test data
+            log.info("Generating charts")
+            line_plot = get_line_plot(Y_test, y_pred)
+            mlflow.log_figure(line_plot, "TEST_real_vs_prediction.png")
+            scatter_plot = get_scatter_plot(Y_test, y_pred)
+            mlflow.log_figure(scatter_plot, "TEST_scatter.png")
+            histogram = get_histogram_residuals(Y_test, y_pred)
+            mlflow.log_figure(histogram, "TEST_histogram.png")
+            residual_plot = get_residual_plot(Y_test, y_pred)
+            mlflow.log_figure(residual_plot, "TEST_residual.png")                       
 
     except Exception as e:
         log.exception(f"Error evaluating model: {e}")
+
+    return TEST_metrics
