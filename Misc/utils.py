@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from enum import Enum
 import tensorflow as tf
 from typing import List
 from sklearn.impute import SimpleImputer
@@ -95,7 +96,8 @@ def process_data(df, time_index=False, impute_strategy=False, scale_data=False, 
         df = df.iloc[:, 1:]
         # Scale the features
         df = pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
-        df = pd.concat([target, df], axis=1)  # Re-add the target column to the DataFrame
+        # Re-add the target column to the DataFrame
+        df = pd.concat([target, df], axis=1)
     
     # Select the most relevant features
     if select_features:
@@ -233,30 +235,44 @@ def to_target(obs, sequence_columns, target_columns):
 
 ################# MODEL #################
 
-def get_optimizer(optimizer, learning_rate):
-    if optimizer == 'Adam':
+class Optimizer(str, Enum):
+    Adam = 'Adam'
+    SGD = 'SGD'
+    RMSprop = 'RMSprop'
+    Adagrad = 'Adagrad'
+    Adadelta = 'Adadelta'
+
+def get_optimizer(optimizer: Optimizer, learning_rate: float):
+    if optimizer == Optimizer.Adam:
         return tf.keras.optimizers.Adam(learning_rate=learning_rate)
-    elif optimizer == 'SGD':
+    elif optimizer == Optimizer.SGD:
         return tf.keras.optimizers.SGD(learning_rate=learning_rate)
-    elif optimizer == 'RMSprop':
+    elif optimizer == Optimizer.RMSprop:
         return tf.keras.optimizers.RMSprop(learning_rate=learning_rate)
-    elif optimizer == 'Adagrad':
+    elif optimizer == Optimizer.Adagrad:
         return tf.keras.optimizers.Adagrad(learning_rate=learning_rate)
-    elif optimizer == 'Adadelta':
+    elif optimizer == Optimizer.Adadelta:
         return tf.keras.optimizers.Adadelta(learning_rate=learning_rate)
     else:
         raise ValueError(f"Invalid optimizer: {optimizer}")
 
-def get_loss(loss):
-    if loss == 'mse':
+class Loss(str, Enum):
+    mse = 'mse'
+    mae = 'mae'
+    mape = 'mape'
+    msle = 'msle'
+    hinge = 'hinge'
+
+def get_loss(loss: Loss):
+    if loss == Loss.mse:
         return tf.keras.losses.MeanSquaredError()
-    elif loss == 'mae':
+    elif loss == Loss.mae:
         return tf.keras.losses.MeanAbsoluteError()
-    elif loss == 'mape':
+    elif loss == Loss.mape:
         return tf.keras.losses.MeanAbsolutePercentageError()
-    elif loss == 'msle':
+    elif loss == Loss.msle:
         return tf.keras.losses.MeanSquaredLogarithmicError()
-    elif loss == 'hinge':
+    elif loss == Loss.hinge:
         return tf.keras.losses.Hinge()
     else:
         raise ValueError(f"Invalid loss function: {loss}")
