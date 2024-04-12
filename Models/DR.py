@@ -4,7 +4,7 @@ from typing import Tuple
 # https://gitlab.eecs.umich.edu/mld3/deep-residual-time-series-forecasting/-/blob/master/drtf.py?ref_type=heads
 
 # Function to define the deep residual network architecture
-def DR_1(input_shape: Tuple[int, ...], output_shape: int = 1, num_blocks: int = 7, hidden_units: int = 300, embedding_size: int = 32, auxiliary_variables: int = 17) -> tf.keras.Model:
+def DR_1(input_shape: Tuple[int, ...], output_shape: int = 1, num_blocks: int = 7, hidden_units: int = 300) -> tf.keras.Model:
     """
     Defines a deep residual neural network architecture for time series forecasting.
 
