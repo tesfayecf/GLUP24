@@ -7,7 +7,7 @@ color_palette = ["#1E88E5", "#ED2F7E", "#EAED2F", "#F44336"]
 # Set figure size
 fig_size = (10, 6)
 
-def get_line_plot(y_true, y_pred):
+def get_line_plot(y_true, y_pred, show=False):
    fig = plt.figure(figsize=fig_size)  # Create figure object
    plt.plot(y_true, label="True values", color=color_palette[0])
    plt.plot(y_pred, label="Predictions", color=color_palette[1])
@@ -17,7 +17,10 @@ def get_line_plot(y_true, y_pred):
    plt.legend(fontsize=12)
    plt.grid(axis="y")
    plt.tight_layout()
-   plt.close(fig)  # Close the figure to prevent display
+   if show:
+      plt.show()
+   else:
+      plt.close(fig)  # Close the figure to prevent display
    return fig
 
 def get_scatter_plot(y_true, y_pred):

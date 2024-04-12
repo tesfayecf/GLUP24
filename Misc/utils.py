@@ -48,16 +48,14 @@ def create_time_index(dataset):
 
     return dataset
 
-def process_data(df, time_index=False, impute_strategy=False, scale_data=False, select_features=False):
+def process_data(df, time_index=True, scale_data=False, select_features=False):
     """
     Preprocesses the input DataFrame:
     1. Replaces commas with periods in all values.
     2. Converts all values to float.
-    3. Optionally imputes missing values.
-    4. Optionally scales the data.
-    5. Optionally encodes categorical variables.
-    6. Optionally selects the most relevant features.
-    7. Optionally creates a time index.
+    3. Optionally scales the data.
+    4. Optionally selects the most relevant features.
+    5. Optionally creates a time index.
     
     Args:
         df (DataFrame): Input DataFrame.
@@ -77,15 +75,10 @@ def process_data(df, time_index=False, impute_strategy=False, scale_data=False, 
 
     # Create time index if specified
     if time_index:
-        df = create_time_index(df, time_index)  # Assuming create_time_index function is defined
+        df = create_time_index(df)  # Assuming create_time_index function is defined
 
     # Remove time columns
     df = df.drop(['year', 'month', 'day', 'hour', 'minute', 'second'], axis=1)
-    
-    # Impute missing values
-    if impute_strategy:
-        imputer = SimpleImputer(strategy=impute_strategy)
-        df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
     
     # Scale the data 
     if scale_data:
