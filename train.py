@@ -102,20 +102,20 @@ def train(model_name: str, model_version: int, **parameters) -> float:
 
     ################# DATASETS #################
     try:
-        log.info("Reading data")
+        log.info("Reading training data")
         # Get training and validation data
         train_val_data = pd.read_csv(f'{datasets_dir_}/{number_}/{number_}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
         train_val_data = process_data(train_val_data, scale_data=scale_data, select_features=select_features)
         log.debug(f"Training data info: {train_val_data.describe()}")
     except Exception as e:
-        log.exception(f"Error reading datasets", exec_info=e)
+        log.exception(f"Error reading training data", exec_info=e)
         return
 
     ################# PREPROCESSING #################
     try:
         log.info("Creating training and validation datasets")
         # Create sequences and targets for training
-        X_train_val, Y_train_val = to_sequences_multi(train_val_data,  sequence_size, prediction_time, target_columns)
+        X_train_val, Y_train_val = to_sequences_multi(train_val_data, sequence_size, prediction_time, target_columns)
         # Split training and validation data
         x_train, x_val, y_train, y_val = train_test_split(X_train_val, Y_train_val, test_size=validation_split, random_state=42)
         # Create TensorFlow datasets for training
@@ -190,7 +190,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         log.exception(f"Error building model", exec_info=e)
         return
     
-    ################# TRAIN AND TEST MODEL #################
+    ################# TRAIN AND VALIDATE MODEL #################
     try:
         with mlflow.start_run(run_name=run_name) as run:  
             # Define callbacks
@@ -233,7 +233,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             model.fit(train_dataset, epochs=epochs, callbacks=callbacks)
             log.debug(f"Training time: {time.time() - start_time}")     
         
-            ################# TEST #################
+            ################# VALIDATE #################
             # Run validation inference
             log.info("Running validation inference")
             start_time = time.time()
@@ -259,7 +259,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
                 "explained_variance": explained_variance_score(y_val, y_pred)
             }
             mlflow.log_metrics(metrics)
-            log.debug(f"Test metrics: {metrics}")
+            log.debug(f"Validation metrics: {metrics}")
             
             ################# CHARTS #################
             # Generate chart of real values vs prediction over the test data
