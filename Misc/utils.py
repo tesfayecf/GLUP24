@@ -54,7 +54,7 @@ def create_time_index(dataset):
 
     return dataset
 
-def process_data(df, time_index=True, scale_data=False, select_features=False, use_differences=False, prediction_time=None):
+def process_data(df, time_index=False, scale_data=False, select_features=False, use_differences=False, prediction_time=None):
     """
     Preprocesses the input DataFrame:
     1. Replaces commas with periods in all values.

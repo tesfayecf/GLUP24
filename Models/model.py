@@ -5,6 +5,7 @@ from Models.LSTM import LSTM_1, LSTM_2, LSTM_3, LSTM_4, LSTM_5
 from Models.GRU import GRU_1
 from Models.CNN import CNN_1
 from Models.DR import DR_1, DR_2
+from Models.RNN import RNN_1
 
 def get_model(model_name: str, model_version: int, input_shape: Tuple[int, ...], output_shape: int, **model_parameters) -> tf.keras.Model:
     """
@@ -85,5 +86,11 @@ def get_model(model_name: str, model_version: int, input_shape: Tuple[int, ...],
             embedding_size = model_parameters.get("embedding_size", 32)
             auxiliary_variables = model_parameters.get("auxiliary_variables", 17)
             return DR_2(input_shape, output_shape, num_blocks=num_blocks, hidden_units=hidden_units, embedding_size=embedding_size, auxiliary_variables=auxiliary_variables)
+        
+    ### RNN ###
+    elif model_name == "RNN":
+        if model_version == 1:
+            hidden_units = model_parameters.get("hidden_units", 32)
+            return RNN_1(input_shape, output_shape, hidden_units=hidden_units)
     else:
         raise ValueError(f"Invalid model id: {model_name}_{model_version}")
