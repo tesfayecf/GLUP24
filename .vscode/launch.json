@@ -2,11 +2,30 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "Run main",
+      "name": "train",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
       "console": "integratedTerminal",
+      "args": ["train"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "test",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "args": ["test"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "name": "evaluate",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "args": ["evaluate"],
       "cwd": "${workspaceFolder}"
     }
   ]
