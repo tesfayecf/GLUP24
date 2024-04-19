@@ -1,3 +1,4 @@
+import json
 import numpy as np
 import pandas as pd
 from enum import Enum
@@ -6,6 +7,11 @@ from typing import List
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.feature_selection import SelectKBest, f_regression
+
+def load_parameters(file_path):
+    with open(file_path, 'r') as file:
+        parameters = json.load(file)
+    return parameters
 
 ################ DATASET ################
 

@@ -53,6 +53,9 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         parameters: A dictionary containing optional hyperparameter values to override defaults.
             - sequence_size (int): The number of timesteps to include in a sequence for training (default: 12).
             - prediction_time (int): The number of timesteps to predict in the future (default: PREDICTION / 5, where PREDICTION is a constant).
+            - scale_data (bool): Whether to scale the data (default: False).
+            - select_features (bool): Whether to select features (default: False).
+            - use_differences (bool): Whether to use differences between timesteps (default: False).
             - validation_split (float): The proportion of the training data to use for validation (default: 0.2).
             - learning_rate (float): The learning rate for the optimizer (default: 0.001).
             - epochs (int): The number of epochs to train the model for (default: 50).
@@ -207,6 +210,10 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             log.info("Logging model parameters")
             # Create params for mlflow
             params = {
+                ### MODEL ###
+                "model_name": model_name, 
+                "model_version": model_version,
+                
                 ### DATASET ###
                 "sequence_size": sequence_size,
                 "prediction_time": prediction_time,
@@ -249,7 +256,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             mlflow.tensorflow.log_model(model, artifact_path="model", )
 
             ################# METRICS #################
-            log.info("Logging test metrics")
+            log.info("Logging validation metrics")
             # Calculate test metrics
             metrics = {
                 "mae": mean_absolute_error(y_val, y_pred), 
