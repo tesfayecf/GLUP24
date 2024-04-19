@@ -73,7 +73,11 @@ def evaluate(run_id: str):
         log.debug(f"Run name: {run_name}")
         # Get model parameters
         parameters_uri = run.info.artifact_uri + "/parameters.json"
-        model_params = mlflow.artifacts.load_dict(parameters_uri)
+        try:
+            model_params = mlflow.artifacts.load_dict(parameters_uri)
+        except Exception as e:
+            log.warning(f"Error getting model parameters")
+            model_params = {}
         # Extract dataset parameters
         sequence_size = model_params.get("sequence_size", sequence_size_)
         prediction_time = model_params.get("prediction_time", int(prediction_ / 5))
