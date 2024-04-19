@@ -144,7 +144,6 @@ def test(run_id: str):
                 "TEST_r2": r2_score(Y_test, y_pred),
                 "TEST_mape": mean_absolute_percentage_error(Y_test, y_pred),
                 "TEST_medae": median_absolute_error(Y_test, y_pred),
-                "TEST_msle": mean_squared_log_error(Y_test, y_pred),
                 "TEST_explained_variance": explained_variance_score(Y_test, y_pred)
             }
             # Log metrics to existing MLflow run

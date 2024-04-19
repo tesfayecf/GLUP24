@@ -22,7 +22,6 @@ def DR_1(input_shape: Tuple[int, ...], output_shape: int = 1, num_blocks: int = 
     # Input layer
     input_features = tf.keras.layers.Input(shape=input_shape)
     
-    
     # Residual blocks
     x = input_features
     for _ in range(num_blocks):

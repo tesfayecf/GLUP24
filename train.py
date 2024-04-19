@@ -32,8 +32,9 @@ datasets_dir_ = os.getenv("DATASETS_DIR")
 sequence_size_: int = 12
 prediction_time_: int = int(prediction_ / 5)
 validation_split_: float = 0.2
-scale_data_: bool = True
-select_features_: bool = True
+scale_data_: bool = False
+select_features_: bool = False
+use_differences_: bool = False
 ######### DEFAULT TRAINING PARAMETERS #########
 learning_rate_: float = 0.001
 epochs_: int = 50
@@ -80,6 +81,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
     validation_split: float = parameters.get('validation_split', validation_split_)
     scale_data: bool = parameters.get('scale_data', scale_data_)
     select_features: bool = parameters.get('select_features', select_features_)
+    use_differences: bool = parameters.get('use_differences', use_differences_)
     # Training parameters
     learning_rate: float = parameters.get('learning_rate', learning_rate_)
     epochs: int = parameters.get('epochs', epochs_)
@@ -105,7 +107,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         log.info("Reading training data")
         # Get training and validation data
         train_val_data = pd.read_csv(f'{datasets_dir_}/{number_}/{number_}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
-        train_val_data = process_data(train_val_data, scale_data=scale_data, select_features=select_features)
+        train_val_data = process_data(train_val_data, scale_data=scale_data, select_features=select_features, use_differences=use_differences, prediction_time=prediction_time)
         log.debug(f"Training data info: {train_val_data.describe()}")
     except Exception as e:
         log.exception(f"Error reading training data", exec_info=e)
@@ -148,13 +150,14 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         log.info("Building the model")
         # Get input shape from training data  NOTE: This can change from config if select_features == True
         input_shape = x_train.shape[1:]
+        log.debug(f"Input shape: {input_shape}")
         # Create the model with default parameters if there's a ValueError
         try:
-            model = get_model(model_name, model_version, input_shape, len(target_columns), **parameters)                            
+            model: tf.keras.Model = get_model(model_name, model_version, input_shape, len(target_columns), **parameters)                            
             log.debug(f"Using model: {model_name}_{model_version}")
         except ValueError as e:
             log.warning(f"Invalid model: {model_name}_{model_version}, using defualt model (LSTM_1) and parameters")
-            model = get_model("LSTM", 1, input_shape, len(target_columns))
+            model: tf.keras.Model = get_model("LSTM", 1, input_shape, len(target_columns))
         except Exception as e:
             log.exception(f"Error getting model", exec_info=e)
             return
@@ -196,8 +199,8 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             # Define callbacks
             callbacks = [
                 mlflow.keras.MLflowCallback(run),
-                tf.keras.callbacks.ReduceLROnPlateau(patience=5, factor=0.2),
-                tf.keras.callbacks.EarlyStopping(patience=10, restore_best_weights=True),
+                tf.keras.callbacks.ReduceLROnPlateau(patience=10, factor=0.2),
+                tf.keras.callbacks.EarlyStopping(patience=20, restore_best_weights=True),
             ]
             
             ############## PARAMETERS ##############
@@ -230,7 +233,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             # Train the model
             log.info("Starting training")
             start_time = time.time()
-            model.fit(train_dataset, epochs=epochs, callbacks=callbacks)
+            model.fit(train_dataset, epochs=epochs, validation_data=validation_dataset, callbacks=callbacks)
             log.debug(f"Training time: {time.time() - start_time}")     
         
             ################# VALIDATE #################
@@ -255,7 +258,6 @@ def train(model_name: str, model_version: int, **parameters) -> float:
                 "r2": r2_score(y_val, y_pred),
                 "mape": mean_absolute_percentage_error(y_val, y_pred),
                 "medae": median_absolute_error(y_val, y_pred),
-                "msle": mean_squared_log_error(y_val, y_pred),
                 "explained_variance": explained_variance_score(y_val, y_pred)
             }
             mlflow.log_metrics(metrics)
