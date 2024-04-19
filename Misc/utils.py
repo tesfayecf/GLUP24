@@ -48,7 +48,7 @@ def create_time_index(dataset):
 
     return dataset
 
-def process_data(df, time_index=True, scale_data=False, select_features=False):
+def process_data(df, time_index=True, scale_data=False, select_features=False, use_differences=False, prediction_time=None):
     """
     Preprocesses the input DataFrame:
     1. Replaces commas with periods in all values.
@@ -75,11 +75,30 @@ def process_data(df, time_index=True, scale_data=False, select_features=False):
 
     # Create time index if specified
     if time_index:
-        df = create_time_index(df)  # Assuming create_time_index function is defined
+        df = create_time_index(df)
 
     # Remove time columns
     df = df.drop(['year', 'month', 'day', 'hour', 'minute', 'second'], axis=1)
     
+    # Compute the difference of the first column respect to the prediction_time ahead
+    if use_differences:
+        # Assuming the first column is the target column and the rest are features
+        target = df.iloc[:, 0]
+        # Calculate differencies
+        target = target.diff(periods=prediction_time)
+        # Remove the first values 
+        target = target[prediction_time:]
+        # Remove the target column from the DataFrame
+        df = df.iloc[:, 1:]
+        # Remove the first values from the DataFrame
+        df = df[prediction_time:]
+        # Re-add the target column to the DataFrame
+        df = pd.concat([target, df], axis=1)
+        # Remove rows with NaN values
+        df = df.dropna()
+        # Reset index
+        df = df.reset_index(drop=True)
+            
     # Scale the data 
     if scale_data:
         scaler = StandardScaler()
@@ -97,9 +116,11 @@ def process_data(df, time_index=True, scale_data=False, select_features=False):
         # Assuming the first column is the target column and the rest are features
         features = df.iloc[:, 1:]
         target = df.iloc[:, 0]
+        # Compute most significant columns
         selector = SelectKBest(score_func=f_regression, k=min(10, len(features.columns)))
         features_selected = selector.fit_transform(features, target)
         selected_columns = features.columns[selector.get_support()]
+        # Create new dataset with selected columns
         df = pd.DataFrame(features_selected, columns=selected_columns)
         df = pd.concat([target, df], axis=1)
         
@@ -125,7 +146,7 @@ def to_sequences(obs, seq_size, prediction_time):
 
     # Loop through observations, ensuring enough data for window and target
     for i in range(seq_size, len(obs) - prediction_time - 1):
-        # Get the sequence window using slicing (clarified using obs[(i-seq_size):i])
+        # Get the sequence window using slicing
         window = obs[(i - seq_size):i]
         window = [[x] for x in window]
         
