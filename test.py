@@ -88,6 +88,7 @@ def test(run_id: str):
         prediction_time = model_params.get("prediction_time", int(prediction_ / 5))
         scale_data = model_params.get("scale_data", scale_data_)
         select_features = model_params.get("select_features", select_features_)
+        use_differences = model.params.get("use_differences", False)
         log.debug(f"Model parameters: {model_params}")
     except Exception as e:
         log.exception(f"Error getting model parameters", exec_info=e)
@@ -98,7 +99,7 @@ def test(run_id: str):
         log.info("Reading testing data")
         # Get testing data
         test_data = pd.read_csv(f'{datasets_dir}/{dataset_number}/{dataset_number}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
-        test_data = process_data(test_data, scale_data=scale_data, select_features=select_features)
+        test_data = process_data(test_data, scale_data=scale_data, select_features=select_features, use_differences=use_differences, prediction_time=prediction_time)
         log.debug(f"Testing data info: {test_data.describe()}")
     except Exception as e:
         log.exception(f"Error reading testing data", exec_info=e)
