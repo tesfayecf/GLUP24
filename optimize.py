@@ -1,8 +1,10 @@
 from dotenv import load_dotenv
+load_dotenv()
+
 from optuna import create_study, Trial
 from train import train
+import os
 
-load_dotenv()
 
 def objective(trial: Trial):
     
@@ -46,8 +48,11 @@ def objective(trial: Trial):
 
 
 def optimize():
-    study = create_study(direction="minimize")
-    study.optimize(objective, n_trials=75)
+    study = create_study(direction="minimize",
+                         load_if_exists=True,
+                         study_name=f"{os.getenv('EXPERIMENT_NAME')}-{int(os.getenv('DATASET_NUMBER'))}-{int(os.getenv('PREDICTION'))}", 
+                         storage=f"sqlite:///{os.getenv("EXPERIMENT_NAME")}-{int(os.getenv("DATASET_NUMBER"))}-{int(os.getenv("PREDICTION"))}.db")
+    study.optimize(objective, n_trials=250, n_jobs=10)
     pass
 
 if __name__ == "__main__":
