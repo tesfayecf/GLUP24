@@ -9,7 +9,7 @@ import os
 def objective(trial: Trial):
     
     model_name = trial.suggest_categorical("model_name", ["LSTM"])
-    model_version = trial.suggest_categorical("model_version", [1, 2, 3, 4])
+    model_version = trial.suggest_categorical("model_version", [1, 2, 3, 4, 5])
     
     hidden_units = trial.suggest_int("hidden_units", 16, 256, step=16)
     embedding_size = trial.suggest_int("embedding_size", 16, 128, step=16)
@@ -26,7 +26,7 @@ def objective(trial: Trial):
     scale_data = trial.suggest_categorical("scale_data", [True, False])
     use_differences = trial.suggest_categorical("use_differences", [True, False])
     
-    learning_rate = trial.suggest_float("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
+    learning_rate = trial.suggest_categorical("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
     optimizer = trial.suggest_categorical("optimizer", ["Adam", "SGD", "Adagrad", "Adadelta"])
     loss = trial.suggest_categorical("loss", ["mse", "mae"])
     batch_size = trial.suggest_int("batch_size", 32, 256, step=16)
