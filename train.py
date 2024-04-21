@@ -10,7 +10,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import (
     mean_absolute_error, mean_squared_error, r2_score, 
     mean_absolute_percentage_error, median_absolute_error, 
-    mean_squared_log_error, explained_variance_score
+    explained_variance_score
 )
 
 from Misc.utils import *
@@ -122,7 +122,12 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         # Create sequences and targets for training
         X_train_val, Y_train_val = to_sequences_multi(train_val_data, sequence_size, prediction_time, target_columns)
         # Split training and validation data
-        x_train, x_val, y_train, y_val = train_test_split(X_train_val, Y_train_val, test_size=validation_split, random_state=42)
+        x_train, x_val, y_train, y_val = train_test_split(X_train_val, Y_train_val, test_size=validation_split, shuffle=False)
+        
+        # Filter values that are 0 for training data
+        x_train = x_train[y_train[:,0] != 0]
+        y_train = y_train[y_train[:,0] != 0]
+        
         # Create TensorFlow datasets for training
         train_dataset = (tf.data.Dataset
                         .from_tensor_slices((x_train, y_train))
@@ -140,7 +145,6 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         validation_dataset = (tf.data.Dataset
                         .from_tensor_slices((x_val, y_val))
                         .batch(batch_size)
-                        .shuffle(len(x_val))
                         .prefetch(tf.data.experimental.AUTOTUNE)
                     )
         log.debug(f"Validation dataset size: {len(x_val)}")

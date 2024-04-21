@@ -2,6 +2,7 @@ mlruns
 mlartifacts
 Logs
 MLFlow
+MLFlowServer
 Fantasy
 
 # Byte-compiled / optimized / DLL files
