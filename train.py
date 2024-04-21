@@ -37,7 +37,7 @@ select_features_: bool = False
 use_differences_: bool = False
 ######### DEFAULT TRAINING PARAMETERS #########
 learning_rate_: float = 0.001
-epochs_: int = 50
+epochs_: int = 100
 optimizer__: Optimizer = Optimizer.Adam
 loss__: Loss = Loss.mae
 batch_size_: int = 128

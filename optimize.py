@@ -1,13 +1,15 @@
 from dotenv import load_dotenv
+load_dotenv()
+
 from optuna import create_study, Trial
 from train import train
+import os
 
-load_dotenv()
 
 def objective(trial: Trial):
     
     model_name = trial.suggest_categorical("model_name", ["LSTM"])
-    model_version = trial.suggest_categorical("model_version", [1, 2, 3, 4])
+    model_version = trial.suggest_categorical("model_version", [1, 2, 3, 4, 5])
     
     hidden_units = trial.suggest_int("hidden_units", 16, 256, step=16)
     embedding_size = trial.suggest_int("embedding_size", 16, 128, step=16)
@@ -24,7 +26,7 @@ def objective(trial: Trial):
     scale_data = trial.suggest_categorical("scale_data", [True, False])
     use_differences = trial.suggest_categorical("use_differences", [True, False])
     
-    learning_rate = trial.suggest_float("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
+    learning_rate = trial.suggest_categorical("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
     optimizer = trial.suggest_categorical("optimizer", ["Adam", "SGD", "Adagrad", "Adadelta"])
     loss = trial.suggest_categorical("loss", ["mse", "mae"])
     batch_size = trial.suggest_int("batch_size", 32, 256, step=16)
@@ -46,8 +48,11 @@ def objective(trial: Trial):
 
 
 def optimize():
-    study = create_study(direction="minimize")
-    study.optimize(objective, n_trials=75)
+    study = create_study(direction="minimize",
+                         load_if_exists=True,
+                         study_name=f"{os.getenv('EXPERIMENT_NAME')}-{int(os.getenv('DATASET_NUMBER'))}-{int(os.getenv('PREDICTION'))}", 
+                         storage=f"sqlite:///{os.getenv("EXPERIMENT_NAME")}-{int(os.getenv("DATASET_NUMBER"))}-{int(os.getenv("PREDICTION"))}.db")
+    study.optimize(objective, n_trials=250, n_jobs=10)
     pass
 
 if __name__ == "__main__":
