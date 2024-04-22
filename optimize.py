@@ -24,7 +24,7 @@ def objective(trial: Trial):
     validation_split = 0.2
     select_features = trial.suggest_categorical("select_features", [True, False])
     scale_data = trial.suggest_categorical("scale_data", [True, False])
-    use_differences = trial.suggest_categorical("use_differences", [True, False])
+    use_differences = False
     
     learning_rate = trial.suggest_categorical("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
     optimizer = trial.suggest_categorical("optimizer", ["Adam", "SGD", "Adagrad", "Adadelta"])
@@ -52,7 +52,7 @@ def optimize():
                          load_if_exists=True,
                          study_name=f"{os.getenv('EXPERIMENT_NAME')}-{int(os.getenv('DATASET_NUMBER'))}-{int(os.getenv('PREDICTION'))}", 
                          storage=f"sqlite:///{os.getenv('EXPERIMENT_NAME')}-{int(os.getenv('DATASET_NUMBER'))}-{int(os.getenv('PREDICTION'))}.db")
-    study.optimize(objective, n_trials=250, n_jobs=10, show_progress_bar=True)
+    study.optimize(objective, n_trials=250, n_jobs=1, show_progress_bar=True)
     pass
 
 if __name__ == "__main__":

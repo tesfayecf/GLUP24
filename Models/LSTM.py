@@ -21,12 +21,12 @@ def LSTM_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: in
     input_features = tf.keras.layers.Input(shape=input_shape)
 
     # LSTM layers for input features
-    lstm_output = tf.keras.layers.LSTM(hidden_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l1_l2(l1=0.01, l2=0.01))(input_features)
+    lstm_output = tf.keras.layers.LSTM(hidden_units, return_sequences=True)(input_features)
     lstm_output = tf.keras.layers.Dropout(0.3)(lstm_output)
     lstm_output = tf.keras.layers.BatchNormalization()(lstm_output)
     
     # Additional LSTM layer
-    lstm_output = tf.keras.layers.LSTM(hidden_units, kernel_regularizer=tf.keras.regularizers.l1_l2(l1=0.01, l2=0.01))(lstm_output)
+    lstm_output = tf.keras.layers.LSTM(hidden_units)(lstm_output)
     lstm_output = tf.keras.layers.Dropout(0.3)(lstm_output)
     lstm_output = tf.keras.layers.BatchNormalization()(lstm_output)
 
@@ -58,12 +58,12 @@ def LSTM_2(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: in
     input_features = tf.keras.layers.Input(shape=input_shape)
 
     # Bidirectional LSTM layers for input features
-    lstm_output = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_units, return_sequences=True, kernel_regularizer=tf.keras.regularizers.l1_l2(l1=0.01, l2=0.01)))(input_features)
+    lstm_output = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_units, return_sequences=True))(input_features)
     lstm_output = tf.keras.layers.Dropout(0.3)(lstm_output)
     lstm_output = tf.keras.layers.BatchNormalization()(lstm_output)
 
     # Additional bidirectional LSTM layer
-    lstm_output = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_units, kernel_regularizer=tf.keras.regularizers.l1_l2(l1=0.01, l2=0.01)))(lstm_output)
+    lstm_output = tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(hidden_units))(lstm_output)
     lstm_output = tf.keras.layers.Dropout(0.3)(lstm_output)
     lstm_output = tf.keras.layers.BatchNormalization()(lstm_output)
 
