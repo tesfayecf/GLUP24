@@ -21,10 +21,10 @@ def objective(trial: Trial):
     prediction_time = 6
     validation_split = 0.2
     create_timestamp = True
-	create_fatigue = True
-	scale_data = True
-	perform_pca = True
-	pca_components = trial.suggest_categorical("pca_components", [6, 7, 8, 9, 10])
+    create_fatigue = True
+    scale_data = True
+    perform_pca = True
+    pca_components = trial.suggest_categorical("pca_components", [6, 7, 8, 9, 10])
 
     ### TRAINING ###
     learning_rate = trial.suggest_categorical("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
