@@ -6,6 +6,7 @@ from Models.GRU import GRU_1
 from Models.CNN import CNN_1
 from Models.DR import DR_1, DR_2
 from Models.RNN import RNN_1
+from Models.iTransformer import iTransformer_1
 
 def get_model(model_name: str, model_version: int, input_shape: Tuple[int, ...], output_shape: int, **model_parameters) -> tf.keras.Model:
     """
@@ -92,5 +93,12 @@ def get_model(model_name: str, model_version: int, input_shape: Tuple[int, ...],
         if model_version == 1:
             hidden_units = model_parameters.get("hidden_units", 32)
             return RNN_1(input_shape, output_shape, hidden_units=hidden_units)
+        
+    ### iTransformer ###
+    elif model_name == "iTransformer":
+        if model_version == 1:
+            hidden_units = model_parameters.get("hidden_units", 32)
+            return iTransformer_1(input_shape, output_shape, hidden_units=hidden_units)
+    
     else:
         raise ValueError(f"Invalid model id: {model_name}_{model_version}")

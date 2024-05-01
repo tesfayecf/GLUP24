@@ -26,11 +26,11 @@ def train_model(parameters = None):
     return metric
 
 def test_model():
-    run_id = "feeab6d415fb42b893564a5e863dc02d"
+    run_id = "e311b8127ab241338365da3eddc13f59"
     test(run_id)
 
 def evaluate_model():
-    run_id = "feeab6d415fb42b893564a5e863dc02d"
+    run_id = "29ac8739d35e4d7680b4e73080e418f0"
     evaluate(run_id)
 
 if __name__ == "__main__":

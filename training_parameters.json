@@ -1,20 +1,19 @@
 {
-    "model_name": "LSTM",
-    "model_version": 3,
-
-    "hidden_units": 256,
-    "embedding_size": 512,
-
-    "sequence_size": 12,
-    "prediction_time": 6,
-    "validation_split": 0.2,
-    "select_features": false,
-    "scale_data": false,
-    "use_differences": false,
-
-    "learning_rate": 0.001,
-    "epochs": 2,
-    "optimizer": "Adam",
-    "loss": "mae",
-    "batch_size": 128
-}
+	"model_name": "iTransformer",
+	"model_version": 1,
+	"prediction_time": 6,
+	
+	"sequence_size": 12,
+	"validation_split": 0.2,
+	"create_timestamp": true,
+	"create_fatigue": true,
+	"scale_data": true,
+	"perform_pca": true,
+	"pca_components": 8,
+	
+	"learning_rate": 0.0001,
+	"epochs": 20,
+	"optimizer": "Adam",
+	"loss": "mse",
+	"batch_size": 4
+  }
