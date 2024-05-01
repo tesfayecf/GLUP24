@@ -26,6 +26,4 @@ feature_columns = [
     'sleep'
 ]
 
-target_columns = [
-    'glucose_level'
-]
+target_column = 'glucose_level'

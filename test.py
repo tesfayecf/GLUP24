@@ -1,5 +1,4 @@
 import os
-import json
 import mlflow
 import logging
 import tempfile
@@ -14,7 +13,7 @@ from sklearn.metrics import (
 )
 from Misc.utils import *
 from Misc.plot import *
-from Misc.columns import columns, target_columns
+from Misc.columns import columns, target_column
 
 LOG_LEVEL = logging.INFO
 
@@ -26,8 +25,11 @@ port_ = int(os.getenv("MLFLOW_PORT"))
 
 ######### DEFAULT DATASET PARAMETERS #########
 sequence_size_: int = 12
-scale_data_: bool = False
-select_features_: bool = False
+create_timestamp_: bool = True
+create_fatigue_: bool = True
+scale_data_: bool = True
+perform_pca_: bool = True
+pca_components_: int = 8
 
 def test(run_id: str):
     """Test the trained model on the test dataset.
@@ -86,9 +88,11 @@ def test(run_id: str):
         # Extract dataset parameters
         sequence_size = model_params.get("sequence_size", sequence_size_)
         prediction_time = model_params.get("prediction_time", int(prediction_ / 5))
-        scale_data = model_params.get("scale_data", scale_data_)
-        select_features = model_params.get("select_features", select_features_)
-        use_differences = model.params.get("use_differences", False)
+        create_timestamp: bool = model_params.get('create_timestamp', create_timestamp_)
+        create_fatigue: bool = model_params.get('create_fatigue', create_fatigue_)
+        scale_data: bool = model_params.get('scale_data', scale_data_)
+        perform_pca: bool = model_params.get('perform_pca', perform_pca_)
+        pca_components: int = model_params.get('pca_components', pca_components_)
         log.debug(f"Model parameters: {model_params}")
     except Exception as e:
         log.exception(f"Error getting model parameters", exec_info=e)
@@ -99,7 +103,7 @@ def test(run_id: str):
         log.info("Reading testing data")
         # Get testing data
         test_data = pd.read_csv(f'{datasets_dir}/{dataset_number}/{dataset_number}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
-        test_data = process_data(test_data, scale_data=scale_data, select_features=select_features, use_differences=use_differences, prediction_time=prediction_time)
+        test_data = preprocess_data(test_data, create_timestamp, create_fatigue, scale_data, perform_pca, pca_components)
         log.debug(f"Testing data info: {test_data.describe()}")
     except Exception as e:
         log.exception(f"Error reading testing data", exec_info=e)
@@ -109,7 +113,7 @@ def test(run_id: str):
     try:   
         log.info("Creating testing dataset")
         # Create sequences and targets for testing
-        X_test, Y_test = to_sequences_multi(test_data, sequence_size, prediction_time, target_columns)
+        X_test, Y_test = to_sequences(test_data, sequence_size, prediction_time, target_column)
         
         # Filter values that are 0 for test data
         X_test = X_test[Y_test[:,0] != 0]
@@ -153,6 +157,7 @@ def test(run_id: str):
 
             ################# CHARTS #################
             # Generate chart of real values vs prediction over the test data
+            # https://safjan.com/regression-model-errors-plot/
             log.info("Generating charts")
             line_plot = get_line_plot(Y_test, y_pred)
             mlflow.log_figure(line_plot, "TEST_real_vs_prediction.png")
@@ -162,7 +167,6 @@ def test(run_id: str):
             mlflow.log_figure(histogram, "TEST_histogram.png")
             residual_plot = get_residual_plot(Y_test, y_pred)
             mlflow.log_figure(residual_plot, "TEST_residual.png")                       
-
     except Exception as e:
         log.exception(f"Error evaluating model: {e}")
 

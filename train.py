@@ -15,7 +15,7 @@ from sklearn.metrics import (
 
 from Misc.utils import *
 from Misc.plot import *
-from Misc.columns import columns, target_columns
+from Misc.columns import columns, target_column
 from Models.model import get_model
 
 LOG_LEVEL = logging.INFO
@@ -32,9 +32,11 @@ datasets_dir_ = os.getenv("DATASETS_DIR")
 sequence_size_: int = 12
 prediction_time_: int = int(prediction_ / 5)
 validation_split_: float = 0.2
-scale_data_: bool = False
-select_features_: bool = False
-use_differences_: bool = False
+create_timestamp_: bool = True
+create_fatigue_: bool = True
+scale_data_: bool = True
+perform_pca_: bool = True
+pca_components_: int = 8
 ######### DEFAULT TRAINING PARAMETERS #########
 learning_rate_: float = 0.001
 epochs_: int = 100
@@ -82,9 +84,11 @@ def train(model_name: str, model_version: int, **parameters) -> float:
     sequence_size: int = parameters.get('sequence_size', sequence_size_)
     prediction_time: int = parameters.get('prediction_time', prediction_time_)
     validation_split: float = parameters.get('validation_split', validation_split_)
+    create_timestamp: bool = parameters.get('create_timestamp', create_timestamp_)
+    create_fatigue: bool = parameters.get('create_fatigue', create_fatigue_)
     scale_data: bool = parameters.get('scale_data', scale_data_)
-    select_features: bool = parameters.get('select_features', select_features_)
-    use_differences: bool = parameters.get('use_differences', use_differences_)
+    perform_pca: bool = parameters.get('perform_pca', perform_pca_)
+    pca_components: int = parameters.get('pca_components', pca_components_)
     # Training parameters
     learning_rate: float = parameters.get('learning_rate', learning_rate_)
     epochs: int = parameters.get('epochs', epochs_)
@@ -110,7 +114,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         log.info("Reading training data")
         # Get training and validation data
         train_val_data = pd.read_csv(f'{datasets_dir_}/{number_}/{number_}_train.csv', sep=';',encoding = 'unicode_escape', names=columns)
-        train_val_data = process_data(train_val_data, scale_data=scale_data, select_features=select_features, use_differences=use_differences, prediction_time=prediction_time)
+        train_val_data = preprocess_data(train_val_data, create_timestamp, create_fatigue, scale_data, perform_pca, pca_components)
         log.debug(f"Training data info: {train_val_data.describe()}")
     except Exception as e:
         log.exception(f"Error reading training data", exec_info=e)
@@ -120,7 +124,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
     try:
         log.info("Creating training and validation datasets")
         # Create sequences and targets for training
-        X_train_val, Y_train_val = to_sequences_multi(train_val_data, sequence_size, prediction_time, target_columns)
+        X_train_val, Y_train_val = to_sequences(train_val_data, sequence_size, prediction_time, target_column)
         # Split training and validation data
         x_train, x_val, y_train, y_val = train_test_split(X_train_val, Y_train_val, test_size=validation_split, shuffle=False)
         
@@ -160,11 +164,11 @@ def train(model_name: str, model_version: int, **parameters) -> float:
         log.debug(f"Input shape: {input_shape}")
         # Create the model with default parameters if there's a ValueError
         try:
-            model: tf.keras.Model = get_model(model_name, model_version, input_shape, len(target_columns), **parameters)                            
+            model: tf.keras.Model = get_model(model_name, model_version, input_shape, 1, **parameters)                            
             log.debug(f"Using model: {model_name}_{model_version}")
         except ValueError as e:
             log.warning(f"Invalid model: {model_name}_{model_version}, using defualt model (LSTM_1) and parameters")
-            model: tf.keras.Model = get_model("LSTM", 1, input_shape, len(target_columns))
+            model: tf.keras.Model = get_model("LSTM", 1, input_shape, 1)
         except Exception as e:
             log.exception(f"Error getting model", exec_info=e)
             return
@@ -222,8 +226,11 @@ def train(model_name: str, model_version: int, **parameters) -> float:
                 "sequence_size": sequence_size,
                 "prediction_time": prediction_time,
                 "validation_split": validation_split,
+                "create_timestamp": create_timestamp,
+                "create_fatigue": create_fatigue,
                 "scale_data": scale_data,
-                "select_features": select_features,
+                "perform_pca": perform_pca,
+                "pca_components": pca_components,
                 
                 ### TRAINING ###
                 "learning_rate": learning_rate,
@@ -286,7 +293,6 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             mlflow.log_figure(histogram, "histogram.png")
             residual_plot = get_residual_plot(y_val, y_pred)
             mlflow.log_figure(residual_plot, "residual.png")
-            
     except Exception as e:
         log.exception(f"Error training model", exec_info=e)
         return
