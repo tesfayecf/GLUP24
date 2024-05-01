@@ -1,31 +1,32 @@
 from dotenv import load_dotenv
 load_dotenv()
 
-from optuna import create_study, Trial
-from train import train
 import os
+from train import train
+from optuna import create_study, Trial
 
 
 def objective(trial: Trial):
+    model_name = trial.suggest_categorical("model_name", ["iTransformer"])
+    model_version = 1
     
-    model_name = trial.suggest_categorical("model_name", ["LSTM"])
-    model_version = trial.suggest_categorical("model_version", [1, 2, 3, 4, 5])
+    ### MODEL ###
+    hidden_units = trial.suggest_categorical("hidden_units", [64, 128, 256, 512])
+    num_layers = trial.suggest_categorical("num_layers", [1, 2, 3])
+    num_heads = trial.suggest_categorical("num_heads", [32, 64, 128, 256])
+    dropout_rate = trial.suggest_categorical("dropout_rate", [0.0, 0.1, 0.25, 0.3, 0.5])
     
-    hidden_units = trial.suggest_int("hidden_units", 16, 256, step=16)
-    embedding_size = trial.suggest_int("embedding_size", 16, 128, step=16)
-    
-    # num_blocks_residual = trial.suggest_categorical("num_blocks_residual", [1, 2, 3, 4])
-    # dropout_rate = trial.suggest_float("dropout_rate", 0.1, 0.5)
-    # conv_filters = trial.suggest_categorical("conv_filters", [32, 64, 96, 128])
-    # conv_kernel_size = trial.suggest_categorical("conv_kernel_size", [3, 5, 7])
-    
+    ### DATASET ###
     sequence_size = 12
     prediction_time = 6
     validation_split = 0.2
-    select_features = trial.suggest_categorical("select_features", [True, False])
-    scale_data = trial.suggest_categorical("scale_data", [True, False])
-    use_differences = False
-    
+    create_timestamp = True
+	create_fatigue = True
+	scale_data = True
+	perform_pca = True
+	pca_components = trial.suggest_categorical("pca_components", [6, 7, 8, 9, 10])
+
+    ### TRAINING ###
     learning_rate = trial.suggest_categorical("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00005, 0.00001]) 
     optimizer = trial.suggest_categorical("optimizer", ["Adam", "SGD", "Adagrad", "Adadelta"])
     loss = trial.suggest_categorical("loss", ["mse", "mae"])
@@ -34,12 +35,10 @@ def objective(trial: Trial):
     metric = train(
         model_name, model_version, 
         ### MODEL ###
-        hidden_units=hidden_units, embedding_size=embedding_size, 
-        # num_blocks_residual=num_blocks_residual, dropout_rate=dropout_rate,
-        # conv_filters=conv_filters, conv_kernel_size=conv_kernel_size,
+        hidden_units=hidden_units, num_layers=num_layers, num_heads=num_heads, dropout_rate=dropout_rate,
         ### DATASET ###
         sequence_size=sequence_size, prediction_time=prediction_time, validation_split=validation_split, 
-        select_features=select_features, scale_data=scale_data, use_differences=use_differences,
+        create_timestamp=create_timestamp, create_fatigue=create_fatigue, scale_data=scale_data, perform_pca=perform_pca, pca_components=pca_components,
         ### TRAINING ###
         learning_rate=learning_rate, optimizer=optimizer, loss=loss, batch_size=batch_size
     )

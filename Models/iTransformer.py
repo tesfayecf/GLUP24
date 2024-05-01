@@ -1,7 +1,7 @@
 import tensorflow as tf
 from typing import Tuple
 
-def iTransformer_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32) -> tf.keras.Model:
+def iTransformer_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32, num_layers: int = 2, num_heads: int = 256, dropout_rate: float = 0.25) -> tf.keras.Model:
     """
     Creates an iTransformer model with 1 hidden layer.
 
@@ -9,14 +9,13 @@ def iTransformer_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_u
         input_shape (Tuple[int, ...]): Shape of the input features.
         output_shape (int, optional): Shape of the output. Defaults to 1.
         hidden_units (int, optional): Number of hidden units in the model. Defaults to 32.
+        num_layers (int, optional): Number of transformer layers. Defaults to 2.
+        num_heads (int, optional): Number of attention heads. Defaults to 256.
+        dropout_rate (float, optional): Dropout rate. Defaults to 0.25.
 
     Returns:
         tf.keras.Model: The iTransformer model.
     """
-    num_layers = 3
-    num_heads = 256
-    dropout_rate = 0.25
-    
     # Input layer
     input_features = tf.keras.layers.Input(shape=input_shape)
     
@@ -33,7 +32,7 @@ def iTransformer_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_u
     # Transformer Encoder
     for _ in range(num_layers):
         # Multi-head attention
-        attention = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=32, dropout=dropout_rate)(embedding_with_position, embedding_with_position)
+        attention = tf.keras.layers.MultiHeadAttention(num_heads=num_heads, key_dim=hidden_units, dropout=dropout_rate)(embedding_with_position, embedding_with_position)
         attention = tf.keras.layers.LayerNormalization(epsilon=1e-6)(attention + embedding_with_position)
         
         # Feed forward network

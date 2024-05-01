@@ -98,7 +98,10 @@ def get_model(model_name: str, model_version: int, input_shape: Tuple[int, ...],
     elif model_name == "iTransformer":
         if model_version == 1:
             hidden_units = model_parameters.get("hidden_units", 32)
-            return iTransformer_1(input_shape, output_shape, hidden_units=hidden_units)
+            num_layers = model_parameters.get("num_layers", 2)
+            num_heads = model_parameters.get("num_heads", 256)
+            dropout_rate = model_parameters.get("dropout_rate", 0.25)
+            return iTransformer_1(input_shape, output_shape, hidden_units=hidden_units, num_layers=num_layers, num_heads=num_heads, dropout_rate=dropout_rate)
     
     else:
         raise ValueError(f"Invalid model id: {model_name}_{model_version}")
