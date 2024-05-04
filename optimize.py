@@ -7,7 +7,7 @@ from optuna import create_study, Trial
 
 
 def objective(trial: Trial):
-    model_name = trial.suggest_categorical("model_name", ["iTransformer"])
+    model_name = trial.suggest_categorical("model_name", ["Transformer"])
     model_version = 1
     
     ### MODEL ###

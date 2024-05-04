@@ -139,6 +139,6 @@ def evaluate(run_id: str):
         ################# CHARTS #################
         # Generate chart of real values vs prediction over the test data
         log.info("Generating charts")
-        get_line_plot(Y_test, y_pred, True)
+        line_plot(Y_test, y_pred, True)
     except Exception as e:
         log.exception(f"Error evaluating model: {e}")
