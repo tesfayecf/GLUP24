@@ -107,7 +107,7 @@ def to_sequences(dataset, sequence_size: int, prediction_time: int, target_colum
     # Recorre les observacions, assegurant prou dades per la finestra i l'objectiu
     for i in range(sequence_size, len(dataset) - prediction_time - 1):
         # Obté la finestra de seqüències mitjançant l'ús de l'indexació
-        window = dataset.iloc[i - sequence_size:i].drop(columns=[target_column])
+        window = dataset.iloc[i - sequence_size:i]
         # Extreu el valor objectiu
         after_window = dataset.iloc[i + prediction_time - 1][target_column]
          # Afegeix la seqüència i l'objectiu
