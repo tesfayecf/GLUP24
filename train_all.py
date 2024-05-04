@@ -15,7 +15,7 @@ from sklearn.metrics import (
 
 from Misc.utils import *
 from Misc.plot import *
-from Misc.columns import columns, target_columns
+from Misc.columns import columns, target_column
 from Models.model import get_model
 
 LOG_LEVEL = logging.INFO
@@ -122,7 +122,7 @@ def train_all(model_name: str, model_version: int, **parameters) -> float:
     try:
         log.info("Creating training and validation datasets")
         # Create sequences and targets for training
-        X_train_val, Y_train_val = to_sequences_multi(train_val_data, sequence_size, prediction_time, target_columns)
+        X_train_val, Y_train_val = to_sequences_multi(train_val_data, sequence_size, prediction_time, target_column)
         # Split training and validation data
         x_train, x_val, y_train, y_val = train_test_split(X_train_val, Y_train_val, test_size=validation_split, shuffle=False)
         
@@ -162,11 +162,11 @@ def train_all(model_name: str, model_version: int, **parameters) -> float:
         log.debug(f"Input shape: {input_shape}")
         # Create the model with default parameters if there's a ValueError
         try:
-            model: tf.keras.Model = get_model(model_name, model_version, input_shape, len(target_columns), **parameters)                            
+            model: tf.keras.Model = get_model(model_name, model_version, input_shape, len(target_column), **parameters)                            
             log.debug(f"Using model: {model_name}_{model_version}")
         except ValueError as e:
             log.warning(f"Invalid model: {model_name}_{model_version}, using defualt model (LSTM_1) and parameters")
-            model: tf.keras.Model = get_model("LSTM", 1, input_shape, len(target_columns))
+            model: tf.keras.Model = get_model("LSTM", 1, input_shape, len(target_column))
         except Exception as e:
             log.exception(f"Error getting model", exec_info=e)
             return
@@ -280,13 +280,13 @@ def train_all(model_name: str, model_version: int, **parameters) -> float:
             # Generate chart of real values vs prediction over the test data
             # https://safjan.com/regression-model-errors-plot/
             log.info("Generating charts")
-            line_plot = get_line_plot(y_val, y_pred)
+            line_plot = line_plot(y_val, y_pred)
             mlflow.log_figure(line_plot, "real_vs_prediction.png")
-            scatter_plot = get_scatter_plot(y_val, y_pred)
+            scatter_plot = scatter_plot(y_val, y_pred)
             mlflow.log_figure(scatter_plot, "scatter.png")
-            histogram = get_histogram_residuals(y_val, y_pred)
+            histogram = histogram_residuals_plot(y_val, y_pred)
             mlflow.log_figure(histogram, "histogram.png")
-            residual_plot = get_residual_plot(y_val, y_pred)
+            residual_plot = residual_plot(y_val, y_pred)
             mlflow.log_figure(residual_plot, "residual.png")
             
     except Exception as e:
