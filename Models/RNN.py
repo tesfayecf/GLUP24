@@ -1,8 +1,7 @@
 import tensorflow as tf
 from typing import Tuple
 
-################# RNN ################# 
-def RNN_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32) -> tf.keras.Model:
+def RNN_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32, dropout: float = 0.25) -> tf.keras.Model:
     """
     Implements an advanced RNN model for time series prediction with stacked layers, 
     dropout, BatchNormalization, and optional return sequences.
@@ -25,11 +24,11 @@ def RNN_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int
 
     # Stacked RNN layers with dropout and BatchNormalization
     rnn_output = tf.keras.layers.SimpleRNN(hidden_units, return_sequences=True)(input_features)
-    rnn_output = tf.keras.layers.Dropout(0.2)(rnn_output)
+    rnn_output = tf.keras.layers.Dropout(dropout)(rnn_output)
     rnn_output = tf.keras.layers.BatchNormalization()(rnn_output)
 
     rnn_output = tf.keras.layers.SimpleRNN(hidden_units)(rnn_output)
-    rnn_output = tf.keras.layers.Dropout(0.2)(rnn_output)
+    rnn_output = tf.keras.layers.Dropout(dropout)(rnn_output)
     rnn_output = tf.keras.layers.BatchNormalization()(rnn_output)
 
     # Dense layer

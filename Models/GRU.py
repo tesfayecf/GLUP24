@@ -1,10 +1,7 @@
 import tensorflow as tf
 from typing import Tuple
 
-MODEL_NAME = "GRU"
-MODEL_VERSION = 1
-
-def GRU_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32, embedding_size: int = 32) -> tf.keras.Model:
+def GRU_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int = 32, embedding_size: int = 32, dropout: float = 0.25) -> tf.keras.Model:
     """
     Implements a time series prediction model using stacked GRUs with dropout regularization.
 
@@ -12,9 +9,9 @@ def GRU_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int
 
     Args:
         input_shape (Tuple[int, ...]): The expected input shape for the model.
+        output_shape (int): The number of output units in the final dense layer.
         hidden_units (int, optional): The number of hidden units in each GRU layer. Defaults to 64.
         embedding_size (int, optional): The size of the embedding layer. Defaults to 32.
-        output_shape (int): The number of output units in the final dense layer.
 
     Returns:
         tf.keras.Model: A compiled time series prediction model.
@@ -25,11 +22,11 @@ def GRU_1(input_shape: Tuple[int, ...], output_shape: int = 1, hidden_units: int
 
     # GRU layers for input features
     gru_output = tf.keras.layers.GRU(hidden_units, return_sequences=True)(input_features)
-    gru_output = tf.keras.layers.Dropout(0.3)(gru_output)
+    gru_output = tf.keras.layers.Dropout(dropout)(gru_output)
     
     # Additional GRU layer
     gru_output = tf.keras.layers.GRU(hidden_units)(gru_output)
-    gru_output = tf.keras.layers.Dropout(0.3)(gru_output)
+    gru_output = tf.keras.layers.Dropout(dropout)(gru_output)
     
     # Dense layers
     dense_output = tf.keras.layers.Dense(embedding_size, activation='relu')(gru_output)
