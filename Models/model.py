@@ -47,25 +47,6 @@ def get_model(model_name: Literal["LSTM", "GRU", "CNN", "DR", "RNN", "Transforme
             embedding_size = model_parameters.get("embedding_size", 32)
             dropout = model_parameters.get("dropout", 0.25)
             return LSTM_3(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size, dropout=dropout)
-        
-        elif model_version == 4:
-            hidden_units = model_parameters.get("hidden_units", 32)
-            embedding_size = model_parameters.get("embedding_size", 32)
-            num_residual_blocks = model_parameters.get("num_residual_blocks", 2)
-            dropout = model_parameters.get("dropout", 0.25)
-            return LSTM_4(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size, 
-                          num_residual_blocks=num_residual_blocks, dropout=dropout)
-        
-        elif model_version == 5:
-            hidden_units = model_parameters.get("hidden_units", 32)
-            embedding_size = model_parameters.get("embedding_size", 32)
-            num_residual_blocks = model_parameters.get("num_residual_blocks", 2)
-            dropout = model_parameters.get("dropout", 0.25)
-            conv_filters = model_parameters.get("conv_filters", 32)
-            conv_kernel_size = model_parameters.get("conv_kernel_size", 3)
-            return LSTM_5(input_shape, output_shape, hidden_units=hidden_units, embedding_size=embedding_size, 
-                          num_residual_blocks=num_residual_blocks, dropout=dropout, conv_filters=conv_filters, 
-                          conv_kernel_size=conv_kernel_size)
     
     ### GRU ###
     elif model_name == "GRU":
@@ -90,14 +71,6 @@ def get_model(model_name: Literal["LSTM", "GRU", "CNN", "DR", "RNN", "Transforme
             hidden_units = model_parameters.get("hidden_units", 32)
             dropout = model_parameters.get("dropout", 0.25)
             return RNN_1(input_shape, output_shape, hidden_units=hidden_units, dropout=dropout)
-        
-    ### DR ###  
-    elif model_name == "DR":
-        if model_version == 1:
-            num_blocks = model_parameters.get("num_blocks", 8)
-            hidden_units = model_parameters.get("hidden_units", 32)
-            dropout = model_parameters.get("dropout", 0.25)
-            return DR_1(input_shape, output_shape, num_blocks=num_blocks, hidden_units=hidden_units, dropout=dropout)
     
     ### Transformer ###
     elif model_name == "Transformer":

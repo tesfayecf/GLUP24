@@ -2,7 +2,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "MLflow",
+      "label": "Start MLflow",
       "type": "shell",
       "command": "mlflow",
       "args": [
@@ -15,29 +15,6 @@
         "./MLflow/mlruns",
         "--artifacts-destination",
         "./MLflow/mlartifacts"
-      ],
-      "presentation": {
-        "echo": true,
-        "reveal": "always",
-        "focus": false,
-        "panel": "dedicated"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "MLflowServer",
-      "type": "shell",
-      "command": "mlflow",
-      "args": [
-        "server",
-        "--host",
-        "127.0.0.1",
-        "--port",
-        "8081",
-        "--backend-store-uri",
-        "./MLflowServer/mlruns",
-        "--artifacts-destination",
-        "./MLflowServer/mlartifacts"
       ],
       "presentation": {
         "echo": true,
