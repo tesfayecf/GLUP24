@@ -285,14 +285,12 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             # Generate chart of real values vs prediction over the test data
             # https://safjan.com/regression-model-errors-plot/
             log.info("Generating charts")
-            line_plot = line_plot(y_val, y_pred)
-            mlflow.log_figure(line_plot, "real_vs_prediction.png")
-            scatter_plot = scatter_plot(y_val, y_pred)
-            mlflow.log_figure(scatter_plot, "scatter.png")
-            histogram = histogram_residuals_plot(y_val, y_pred)
-            mlflow.log_figure(histogram, "histogram.png")
-            residual_plot = residual_plot(y_val, y_pred)
-            mlflow.log_figure(residual_plot, "residual.png")
+            line_plot_ = line_plot(y_val, y_pred)
+            mlflow.log_figure(line_plot_, "real_vs_prediction.png")
+            scatter_plot_ = scatter_plot(y_val, y_pred)
+            mlflow.log_figure(scatter_plot_, "scatter.png")
+            histogram_ = histogram_residuals_plot(y_val, y_pred)
+            mlflow.log_figure(histogram_, "histogram.png")
     except Exception as e:
         log.exception(f"Error training model", exec_info=e)
         return

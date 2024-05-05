@@ -159,14 +159,12 @@ def test(run_id: str):
             # Generate chart of real values vs prediction over the test data
             # https://safjan.com/regression-model-errors-plot/
             log.info("Generating charts")
-            line_plot = line_plot(Y_test, y_pred)
-            mlflow.log_figure(line_plot, "TEST_real_vs_prediction.png")
-            scatter_plot = scatter_plot(Y_test, y_pred)
-            mlflow.log_figure(scatter_plot, "TEST_scatter.png")
-            histogram = histogram_residuals_plot(Y_test, y_pred)
-            mlflow.log_figure(histogram, "TEST_histogram.png")
-            residual_plot = residual_plot(Y_test, y_pred)
-            mlflow.log_figure(residual_plot, "TEST_residual.png")                       
+            line_plot_ = line_plot(Y_test, y_pred)
+            mlflow.log_figure(line_plot_, "TEST_real_vs_prediction.png")
+            scatter_plot_ = scatter_plot(Y_test, y_pred)
+            mlflow.log_figure(scatter_plot_, "TEST_scatter.png")
+            histogram_ = histogram_residuals_plot(Y_test, y_pred)
+            mlflow.log_figure(histogram_, "TEST_histogram.png")
     except Exception as e:
         log.exception(f"Error evaluating model: {e}")
 
