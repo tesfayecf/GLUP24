@@ -4,6 +4,8 @@ Logs
 MLFlow
 MLFlowServer
 Images
+OptimizationOLD
+HyperSearch
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
