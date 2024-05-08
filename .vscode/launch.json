@@ -11,6 +11,15 @@
       "cwd": "${workspaceFolder}"
     },
     {
+      "name": "optimize",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "console": "integratedTerminal",
+      "args": ["optimize"],
+      "cwd": "${workspaceFolder}"
+    },
+    {
       "name": "test",
       "type": "debugpy",
       "request": "launch",
