@@ -39,7 +39,7 @@ perform_pca_: bool = True
 pca_components_: int = 8
 ######### DEFAULT TRAINING PARAMETERS #########
 learning_rate_: float = 0.001
-epochs_: int = 100
+epochs_: int = 50
 optimizer__: Optimizer = Optimizer.Adam
 loss__: Loss = Loss.mae
 batch_size_: int = 128
