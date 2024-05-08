@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from test import test
 from train import train
+from optimize import optimize
 from evaluate import evaluate
 from Misc.utils import load_parameters
 
@@ -25,6 +26,9 @@ def train_model(parameters = None):
     metric = train(**parameters)    
     return metric
 
+def optimize_model():
+    optimize()
+
 def test_model():
     run_id = "e311b8127ab241338365da3eddc13f59"
     test(run_id)
@@ -38,6 +42,8 @@ if __name__ == "__main__":
     if len(sys.argv) == 2:
         if sys.argv[1] == "train":
             train_model()
+        if sys.argv[1] == "optimize":
+            optimize_model()
         elif sys.argv[1] == "test":
             test_model()
         elif sys.argv[1] == "evaluate":
