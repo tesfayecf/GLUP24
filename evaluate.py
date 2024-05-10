@@ -8,6 +8,11 @@ import tensorflow as tf
 from Misc.utils import *
 from Misc.plot import *
 from Misc.columns import columns, target_column
+from sklearn.metrics import (
+    mean_absolute_error, mean_squared_error, r2_score, 
+    mean_absolute_percentage_error, median_absolute_error, 
+    explained_variance_score
+)
 
 LOG_LEVEL = logging.INFO
 
@@ -71,8 +76,7 @@ def evaluate(run_id: str):
         log.info("Getting model parameters")
         # Get dataset number from run name
         run_name = run.info.run_name
-        # dataset_number = int(run_name.split("-")[1])
-        dataset_number = 559
+        dataset_number = int(run_name.split("-")[1])
         prediction_ = int(run_name.split("-")[2])
         log.debug(f"Run name: {run_name}")
         # Get model parameters
@@ -135,6 +139,18 @@ def evaluate(run_id: str):
         ################# TEST #################
         # Run model inference on the test dataset
         y_pred = model.predict(test_dataset)
+        
+        TEST_metrics = {
+            "mae": mean_absolute_error(Y_test, y_pred), 
+            "mse": mean_squared_error(Y_test, y_pred), 
+            "rmse": np.sqrt(mean_squared_error(Y_test, y_pred)), 
+            "r2": r2_score(Y_test, y_pred),
+            "mape": mean_absolute_percentage_error(Y_test, y_pred),
+            "medae": median_absolute_error(Y_test, y_pred),
+            "explained_variance": explained_variance_score(Y_test, y_pred)
+        }
+            # Log metrics to existing MLflow run
+        log.info  (f"Test metrics: {TEST_metrics}")
 
         ################# CHARTS #################
         # Generate chart of real values vs prediction over the test data

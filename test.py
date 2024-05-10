@@ -9,7 +9,7 @@ import tensorflow as tf
 from sklearn.metrics import (
     mean_absolute_error, mean_squared_error, r2_score, 
     mean_absolute_percentage_error, median_absolute_error, 
-    mean_squared_log_error, explained_variance_score
+    explained_variance_score
 )
 from Misc.utils import *
 from Misc.plot import *

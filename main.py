@@ -30,11 +30,11 @@ def optimize_model():
     optimize()
 
 def test_model():
-    run_id = "e311b8127ab241338365da3eddc13f59"
+    run_id = ""
     test(run_id)
 
 def evaluate_model():
-    run_id = "29ac8739d35e4d7680b4e73080e418f0"
+    run_id = ""
     evaluate(run_id)
 
 if __name__ == "__main__":

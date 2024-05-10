@@ -6,7 +6,7 @@ import tempfile
 import os
 from sklearn import metrics
 
-class PlotCallback(tf.keras.callbacks.Callback):
+class CreateGifCallback(tf.keras.callbacks.Callback):
     """
     Callback personalitzat per generar gràfics durant l'entrenament i compilar-los en un GIF al final de l'entrenament.
 
@@ -24,7 +24,7 @@ class PlotCallback(tf.keras.callbacks.Callback):
         temp_dir (str): Directori temporal per desar les imatges temporals.
     """
     def __init__(self, x_test, y_test, gif_path, show: bool = False):
-        super(PlotCallback, self).__init__()
+        super(CreateGifCallback, self).__init__()
         self.x_test = x_test
         self.y_test = y_test
         self.gif_path = gif_path
@@ -43,7 +43,7 @@ class PlotCallback(tf.keras.callbacks.Callback):
         """
         pred = self.model.predict(self.x_test)
 
-        plt.figure(figsize=(16, 4))
+        plt.figure(figsize=(12, 4))
         plt.plot(np.arange(len(self.y_test)), self.y_test, label='Dades reals')
         plt.plot(np.arange(len(pred)), pred, label='Prediccions')
         plt.xlabel('Temps')
@@ -68,8 +68,6 @@ class PlotCallback(tf.keras.callbacks.Callback):
 
         # Afegir la imatge a la llista d'imatges
         self.images.append(Image.open(os.path.join(self.temp_dir, filename)))
-
-        print("Època: {}, RMSE: {:.4f}, MAE: {:.4f}".format(epoch + 1, rmse, mae))
 
     def on_train_end(self, logs=None):
         """

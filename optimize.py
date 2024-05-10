@@ -7,15 +7,15 @@ from optuna import create_study, Trial
 
 
 def objective(trial: Trial):
-    model_name = trial.suggest_categorical("model_name", ["Transformer"])
+    model_name = "Transformer"
     model_version = 1
     
     ### MODEL ###
-    hidden_units = trial.suggest_categorical("hidden_units", [128, 256])
-    filters = trial.suggest_categorical("filters", [8, 16, 32, 64])
+    hidden_units = trial.suggest_categorical("hidden_units", [64, 128, 256, 512])
     num_layers = trial.suggest_categorical("num_layers", [1, 2, 3, 4])
     num_heads = trial.suggest_categorical("num_heads", [32, 64, 128, 256])
-    dropout = 0.1
+    dropout = trial.suggest_categorical("dropout", [0.0, 0.1, 0.25, 0.3, 0.5])
+    filters = trial.suggest_categorical("filters", [8, 16, 32, 64, 128])
     
     ### DATASET ###
     sequence_size = 12
@@ -28,10 +28,10 @@ def objective(trial: Trial):
     pca_components = 8
 
     ### TRAINING ###
-    learning_rate = trial.suggest_categorical("learning_rate", [0.01, 0.005, 0.001]) 
-    optimizer = "Adam"
-    loss = "mae"
-    batch_size = trial.suggest_categorical("batch_size", [32, 64, 128])
+    learning_rate = trial.suggest_categorical("learning_rate", [0.005, 0.001, 0.0005, 0.0001, 0.00001, 0.00005]) 
+    optimizer = trial.suggest_categorical("optimizer", ["Adam", "SGD", "Adagrad", "Adadelta"])
+    loss = trial.suggest_categorical("loss", ["mse", "mae"])
+    batch_size = trial.suggest_int("batch_size", 32, 256, step=16)
     
     metric = train(
         model_name, model_version, 

@@ -16,6 +16,7 @@ from sklearn.metrics import (
 from Misc.utils import *
 from Misc.plot import *
 from Misc.columns import columns, target_column
+from Misc.callbacks import CreateGifCallback
 from Models.model import get_model
 
 LOG_LEVEL = logging.INFO
@@ -208,10 +209,12 @@ def train(model_name: str, model_version: int, **parameters) -> float:
     try:
         with mlflow.start_run(run_name=run_name) as run:  
             # Define callbacks
+            gif_path = os.path.join("./Images", run_name + ".gif")
             callbacks = [
                 mlflow.keras.MLflowCallback(run),
                 tf.keras.callbacks.ReduceLROnPlateau(patience=10, factor=0.2),
                 tf.keras.callbacks.EarlyStopping(patience=20, restore_best_weights=True),
+                CreateGifCallback(x_val, y_val, gif_path)
             ]
             
             ############## PARAMETERS ##############
@@ -291,6 +294,7 @@ def train(model_name: str, model_version: int, **parameters) -> float:
             mlflow.log_figure(scatter_plot_, "scatter.png")
             histogram_ = histogram_residuals_plot(y_val, y_pred)
             mlflow.log_figure(histogram_, "histogram.png")
+            mlflow.log_artifact(gif_path)
     except Exception as e:
         log.exception(f"Error training model", exec_info=e)
         return

@@ -14,13 +14,13 @@ Per executar aquest codi, assegureu-vos de tenir Python 3.9.13 instal·lat al vo
 pip install -r requirements.txt
 ```
 
-Abans d'executar cap script, s'ha d'inicialitzar un servidor de MLflow. Si utilitzeu l'IDE de VSCode, podeu fer-ho executant la tasca "Start MLFLow". Aquesta tasca utilitza la carpeta MLFlow. També podeu iniciar el servidor amb la comanda següent:
+Abans d'executar cap script, s'ha d'inicialitzar un servidor de MLflow. Si utilitzeu l'IDE de VSCode, podeu fer-ho executant la tasca "Start MLflow". Aquesta tasca utilitza la carpeta MLflow. També podeu iniciar el servidor amb la comanda següent:
 
 ```
 mlflow server --host 127.0.0.1 --port 8080 --backend-store-uri ./MLflow/mlruns --default-artifact-root ./MLflow/mlartifacts
 ```
 
-El host i el port han de ser els mateixos especificats a l'arxiu `.env`. Aquest servidor servirà per guardar i visualitzar els models entrenats.
+El host i el port han de ser els mateixos especificats a l'arxiu `.env`. Aquest servidor servirà per guardar i visualitzar els models entrenats. Actualment hi ha els models resultants.
 
 # Estructura
 
@@ -71,7 +71,7 @@ La distribució de les carpetes del codi és la següent:
 
 Els arxius principals són `train.py`, `optimize.py`, `test.py` i `evaluate.py`.
 
-`train.py`: És responsable d'entrenar un model d'aprenentatge automàtic amb un conjunt de dades específic, avaluar-ne el rendiment i registrar els resultats juntament amb el model a MLflow. Aquest per configurar el model utilitza els paràmetres espcificats a l'arxiu `training_parameters.json`
+`train.py`: És responsable d'entrenar un model d'aprenentatge automàtic amb un conjunt de dades específic, avaluar-ne el rendiment i registrar els resultats juntament amb el model a MLflow. Aquest per configurar el model utilitza els paràmetres espcificats a l'arxiu `training_parameters.json`. Al acabar puja el model a MLflow i genera gràfiques per avaluar els resultats.
 
 `optimize.py`: És un script que utilitza la llibreria Optuna per optimitzar els hiperparàmetres d'un model d'aprenentatge automàtic. Carrega les variables d'entorn des d'un arxiu .env, defineix una funció objectiu per a l'optimització dels hiperparàmetres i executa l'optimització utilitzant Optuna.
 

@@ -12,9 +12,9 @@
         "--port",
         "8080",
         "--backend-store-uri",
-        "./MLflowTreball/mlruns",
+        "./MLflow/mlruns",
         "--artifacts-destination",
-        "./MLflowTreball/mlartifacts"
+        "./MLflow/mlartifacts"
       ],
       "presentation": {
         "echo": true,

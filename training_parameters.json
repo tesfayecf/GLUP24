@@ -1,9 +1,15 @@
 {
-	"model_name": "iTransformer",
+	"model_name": "Transformer",
 	"model_version": 1,
-	"prediction_time": 6,
-	
+
+	"learning_rate": 0.00001,
+	"epochs": 100,
+	"optimizer": "Adam",
+	"loss": "mae",
+	"batch_size": 32,
+
 	"sequence_size": 12,
+	"prediction_time": 6,
 	"validation_split": 0.2,
 	"create_timestamp": true,
 	"create_fatigue": true,
@@ -11,9 +17,9 @@
 	"perform_pca": true,
 	"pca_components": 8,
 	
-	"learning_rate": 0.0001,
-	"epochs": 20,
-	"optimizer": "Adam",
-	"loss": "mse",
-	"batch_size": 4
+	"hidden_units": 256,
+	"num_layers": 2,
+	"num_heads": 32,
+	"dropout": 0.1,
+	"filters": 8
   }
