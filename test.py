@@ -105,6 +105,8 @@ def test(run_id: str):
         test_data = pd.read_csv(f'{datasets_dir}/{dataset_number}/{dataset_number}_test.csv', sep=';', encoding = 'unicode_escape', names=columns)
         test_data = preprocess_data(test_data, create_timestamp, create_fatigue, scale_data, perform_pca, pca_components)
         log.debug(f"Testing data info: {test_data.describe()}")
+        # Delete the first 12 values
+        test_data = test_data[12:]
     except Exception as e:
         log.exception(f"Error reading testing data", exec_info=e)
         return
